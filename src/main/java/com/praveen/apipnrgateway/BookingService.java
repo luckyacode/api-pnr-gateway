@@ -57,4 +57,8 @@ public class BookingService {
         activeBookings.forEach(System.out::println);
     }
 
+   public void displayPNR() {
+       System.out.println(activeBookings.stream().findFirst().get().toEdifact());
+    }
+
 }

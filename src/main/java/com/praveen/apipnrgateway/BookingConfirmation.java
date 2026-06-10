@@ -82,4 +82,10 @@ public class BookingConfirmation {
 
         return edifact.toString();
     }
+
+    @Override
+    public String toString() {
+        return String.format("🎟️ PNR: %s | PASSENGER: %s | FLIGHT: %s",
+                pnrCode, passenger.getFullName(), flight.toString());
+    }
 }

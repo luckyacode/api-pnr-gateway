@@ -16,6 +16,7 @@ public class MainApplication2 {
 
             System.out.println("\n--- 📝 COMPLETED REGISTRATION & PNR MANIFEST ---");
             bookingEngine.displayManifest();
+            bookingEngine.displayPNR();
 
 
         } catch (IOException e) {
