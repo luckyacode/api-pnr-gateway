@@ -35,7 +35,6 @@ public class DynamicFlight {
         this.departureCountry = csvRow[4];
         this.destAirport = csvRow[5];
         this.arrivalCountry = csvRow[8];
-        this.equipment = csvRow[9];
 
         // Execute the programmatic dynamic scheduling sequence
         generateFullSchedule();
