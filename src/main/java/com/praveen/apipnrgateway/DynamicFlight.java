@@ -1,6 +1,5 @@
 package com.praveen.apipnrgateway;
 
-import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
@@ -12,10 +11,9 @@ import java.time.format.DateTimeFormatter;
 
 @Getter
 @Setter
-//@Builder
 @Data
 public class DynamicFlight {
-    // Static fields from your original dataset
+    // Structural vectors from your CSV dataset
     private String airline;
     private String sourceAirport;
     private String departureCountry;
@@ -23,15 +21,15 @@ public class DynamicFlight {
     private String arrivalCountry;
     private String equipment;
 
-    // Dynamically generated schedule fields
-    private String flightId;
+    // BRAND NEW: Separated Date and Time Tracking
+    private LocalDate departureDate;
     private LocalTime departureTime;
+    private LocalDate arrivalDate;
     private LocalTime arrivalTime;
-    private String status; // e.g., On Time, Delayed, Boarding
+    private String flightId;
+    private String status;
 
-    // Constructor mapping raw route data to dynamic objects
     public DynamicFlight(String[] csvRow) {
-        // Map columns from: airline, source_airport, departure_airport_name, departure_city, departure_country, dest_airport...
         this.airline = csvRow[0];
         this.sourceAirport = csvRow[1];
         this.departureCountry = csvRow[4];
@@ -39,65 +37,52 @@ public class DynamicFlight {
         this.arrivalCountry = csvRow[8];
         this.equipment = csvRow[9];
 
-        // Trigger the dynamic engine for this flight instance
-        generateDynamicSchedule();
+        // Execute the programmatic dynamic scheduling sequence
+        generateFullSchedule();
     }
 
-    private void generateDynamicSchedule() {
-        // 1. Generate Flight ID
+    private void generateFullSchedule() {
+        // 1. Unique Flight identifier
         int randomNum = (int) (Math.random() * 900) + 100;
         this.flightId = this.airline + "-" + randomNum;
 
-        // 2. Generate Departure Time for "Today"
+        // 2. Schedule Departure (For example, assume flights are generated for "Today")
         int hour = (int) (Math.random() * 24);
         int[] minutes = {0, 15, 30, 45};
         int minute = minutes[(int) (Math.random() * minutes.length)];
 
-        // Use LocalDateTime instead of just LocalTime
-        LocalDateTime departureDateTime = LocalDateTime.of(LocalDate.now(), LocalTime.of(hour, minute));
-        this.departureTime = departureDateTime.toLocalTime(); // Kept for your current print statement
+        // Combine into a full timestamp anchor
+        LocalDateTime departureTimestamp = LocalDateTime.of(LocalDate.now(), LocalTime.of(hour, minute));
 
-        // 3. Generate Flight Duration (e.g., 9 hours)
-        int flightDurationHours = (int) (Math.random() * 10) + 2;
+        // Split and assign to separate date and time properties
+        this.departureDate = departureTimestamp.toLocalDate();
+        this.departureTime = departureTimestamp.toLocalTime();
 
-        // Let Java automatically handle rolling over past midnight to the next day
-        LocalDateTime arrivalDateTime = departureDateTime.plusHours(flightDurationHours);
-        this.arrivalTime = arrivalDateTime.toLocalTime();
+        // 3. Dynamically append random flight duration (between 2 and 14 hours)
+        int flightDurationHours = (int) (Math.random() * 12) + 2;
 
-        // 4. Check if the flight landed on the next day
-        boolean isNextDay = arrivalDateTime.toLocalDate().isAfter(departureDateTime.toLocalDate());
+        // Java automatically handles rolling over the hours and increments the date if it crosses midnight
+        LocalDateTime arrivalTimestamp = departureTimestamp.plusHours(flightDurationHours);
 
-        // 5. Generate Live Status (Append '+1' if it's an overnight cross-border flight)
-        String[] statuses = {"ON TIME", "ON TIME", "DELAYED", "BOARDING"};
-        String baseStatus = statuses[(int) (Math.random() * statuses.length)];
-        this.status = isNextDay ? baseStatus + " (+1 DAY)" : baseStatus;
+        // Split and assign to separate arrival date and time properties
+        this.arrivalDate = arrivalTimestamp.toLocalDate();
+        this.arrivalTime = arrivalTimestamp.toLocalTime();
+
+        // 4. Evaluate status attributes
+        String[] statuses = {"ON TIME", "DELAYED", "BOARDING"};
+        this.status = statuses[(int) (Math.random() * statuses.length)];
     }
-
-//    private void generateDynamicSchedule() {
-//        // 1. Generate Flight ID (e.g., AA-742)
-//        int randomNum = (int) (Math.random() * 900) + 100; // 100 to 999
-//        this.flightId = this.airline + "-" + randomNum;
-//
-//        // 2. Generate Departure Time (randomized throughout the day on blocks of 15 mins)
-//        int hour = (int) (Math.random() * 24);
-//        int[] minutes = {0, 15, 30, 45};
-//        int minute = minutes[(int) (Math.random() * minutes.length)];
-//        this.departureTime = LocalTime.of(hour, minute);
-//
-//        // 3. Generate Arrival Time (adding a random flight duration of 2 to 11 hours)
-//        int flightDurationHours = (int) (Math.random() * 10) + 2;
-//        this.arrivalTime = this.departureTime.plusHours(flightDurationHours);
-//
-//        // 4. Generate Live Status
-//        String[] statuses = {"ON TIME", "ON TIME", "ON TIME", "DELAYED", "BOARDING"};
-//        this.status = statuses[(int) (Math.random() * statuses.length)];
-//    }
 
     @Override
     public String toString() {
+        // Format layout patterns for structural console outputs
+        DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("HH:mm");
-        return String.format("[%s] %s | %s (%s) %s -> %s (%s) %s | %s",
-                status, flightId, sourceAirport, departureCountry, departureTime.format(timeFormat),
-                destAirport, arrivalCountry, arrivalTime.format(timeFormat), equipment);
+
+        return String.format("[%s] %s | %s (%s) DEP: %s @ %s -> %s (%s) ARR: %s @ %s | Type: %s",
+                status, flightId,
+                sourceAirport, departureCountry, departureDate.format(dateFormat), departureTime.format(timeFormat),
+                destAirport, arrivalCountry, arrivalDate.format(dateFormat), arrivalTime.format(timeFormat),
+                equipment);
     }
 }
