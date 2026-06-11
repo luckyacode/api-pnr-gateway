@@ -2,6 +2,8 @@ package com.praveen.apipnrgateway.dto;
 
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -9,10 +11,10 @@ import lombok.*;
 @Data
 public class PNRRequest {
     private String PNRId;
-    private String bookingDateTime;
+    private LocalDateTime bookingDateTime;
     private String bookingStatus;
     private String flightId;
-    private String passengerId;
+    private int passengerId;
     private TicketStatus ticketStatus;
     private Channel bookingChannel;
     private BookingClass bookingClass;
