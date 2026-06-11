@@ -1,6 +1,7 @@
 package com.praveen.apipnrgateway;
 
 import com.praveen.apipnrgateway.dto.CheckInRequest;
+import com.praveen.apipnrgateway.dto.DCSRequest;
 import com.praveen.apipnrgateway.dto.PNRRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +32,14 @@ public class KafkaConsumer {
         CheckInRequest checkInRequest = Utils.jsonToObject(request, CheckInRequest.class);
         log.info("Successfully Message Received : {}", checkInRequest);
         kafkaService.processCheckInMessage(checkInRequest);
+    }
+
+    @KafkaListener(topics = "dcs-topic", groupId = "group-id3")
+    public void consumingDCSRequest(@Payload String request, @Header(value = KafkaHeaders.RECEIVED_KEY) String key) {
+        log.info("DCSRequest Message received with key {} and message : {}", key, request);
+        DCSRequest dcsRequest = Utils.jsonToObject(request, DCSRequest.class);
+        log.info("Successfully Message Received : {}", dcsRequest);
+        kafkaService.processDCSMessage(dcsRequest);
     }
 
 
