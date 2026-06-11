@@ -17,6 +17,7 @@ public class CheckInResponse {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+    private String pnrId;
     @Embedded
     private GovernmentClearanceResponse governmentClearanceResponse;
 }

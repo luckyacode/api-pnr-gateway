@@ -32,6 +32,7 @@ public class KafkaService {
         PNR pnr = pnrService.getPNRById(checkInRequest.getPnrId());
         GovernmentClearanceResponse  governmentClearanceResponse = governmentSimulatorService.processClearance(checkInRequest,pnr);
         CheckInResponse checkInResponse = CheckInResponse.builder().
+                pnrId(checkInRequest.getPnrId()).
                 governmentClearanceResponse(governmentClearanceResponse).build();
         String checkInResponseJson = Utils.objectToJson(checkInResponse);
         kafkaPublisher.sendCheckInResponseMessage(governmentClearanceResponse.getClearanceId(),checkInResponseJson);
