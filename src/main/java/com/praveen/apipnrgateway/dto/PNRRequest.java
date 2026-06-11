@@ -1,4 +1,4 @@
-package com.praveen.apipnrgateway;
+package com.praveen.apipnrgateway.dto;
 
 import lombok.*;
 
@@ -8,8 +8,7 @@ import lombok.*;
 @ToString
 @Data
 public class PNRRequest {
-    private String pnrId;
-//    private String PNRId;
+    private String PNRId;
     private String bookingDateTime;
     private String bookingStatus;
     private String flightId;

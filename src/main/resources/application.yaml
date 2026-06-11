@@ -27,11 +27,10 @@ spring:
       group-id: skyflying-eos-group # Make sure this is present
       isolation-level: read_committed
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      properties:
-        spring.json.use.type.headers: false
-        spring.json.trusted.packages: "com.praveen.*"
-        spring.json.value.default.type: "com.praveen.apipnrgateway.PNRRequest"
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+#      properties:
+#        spring.json.trusted.packages: "com.praveen.*"
+#        spring.json.value.default.type: "com.praveen.apipnrgateway.dto.PNRRequest"
 
     # === PRODUCER CONFIGURATION ===
     producer:
@@ -39,7 +38,7 @@ spring:
       # 👇 FIX 1 & 2: Renamed to standard Spring Boot format and fixed alignment
       transaction-id: tx-invoice-
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
 
     # === LISTENER CONFIGURATION ===
     listener:
