@@ -1,5 +1,6 @@
 package com.praveen.apipnrgateway;
 
+import com.praveen.apipnrgateway.dto.CheckInRequest;
 import com.praveen.apipnrgateway.dto.PNRRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,9 +19,19 @@ public class KafkaConsumer {
 
     @KafkaListener(topics = "pnr-topic", groupId = "group-id1")
     public void consumingPNRRequest(@Payload String request, @Header(value = KafkaHeaders.RECEIVED_KEY) String pnrId) {
-        log.info("Message received with key {} and message : {}", pnrId, request);
+        log.info("PNRRequest Message received with key {} and message : {}", pnrId, request);
         PNRRequest pnrRequest = Utils.jsonToObject(request, PNRRequest.class);
         log.info("Successfully Message Received : {}", pnrRequest);
         kafkaService.processPNRMessage(pnrRequest);
     }
+
+    @KafkaListener(topics = "checkin-topic", groupId = "group-id2")
+    public void consumingCheckInRequest(@Payload String request, @Header(value = KafkaHeaders.RECEIVED_KEY) String pnrId) {
+        log.info("CheckInRequest Message received with key {} and message : {}", pnrId, request);
+        CheckInRequest checkInRequest = Utils.jsonToObject(request, CheckInRequest.class);
+        log.info("Successfully Message Received : {}", checkInRequest);
+        kafkaService.processCheckInMessage(checkInRequest);
+    }
+
+
 }
