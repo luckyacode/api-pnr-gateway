@@ -1,5 +1,6 @@
 package com.praveen.apipnrgateway.entity;
 
+import com.praveen.apipnrgateway.dto.DocumentDetails;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,5 +24,6 @@ public class Passenger {
     private String phone;
     private String city;
     private String country;
-
+    @Embedded
+    private DocumentDetails documentDetails;
 }
