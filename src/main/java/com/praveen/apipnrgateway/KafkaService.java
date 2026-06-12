@@ -43,7 +43,7 @@ public class KafkaService {
 
     public void processDCSMessage(DCSRequest dcsRequest) {
         log.info("Processing DCS Message : {}",dcsRequest);
-        dcsOperationsService.executeAirportCheckIn(dcsRequest.getFlightId(), dcsRequest.getPnrId(), dcsRequest.getPassengerId());
+        dcsOperationsService.executeAirportCheckIn(dcsRequest.getFlightId(), dcsRequest.getPnrId(), dcsRequest.getPassengerId(),dcsRequest.getPassengerName());
         log.info("DCS Completed ... ");
     }
 }

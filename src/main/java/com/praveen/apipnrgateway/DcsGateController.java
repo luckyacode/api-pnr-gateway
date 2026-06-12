@@ -1,8 +1,8 @@
 package com.praveen.apipnrgateway;
 
 import com.praveen.apipnrgateway.dto.DcsStatus;
-import com.praveen.apipnrgateway.entity.DCS;
-import com.praveen.apipnrgateway.repository.DCSRepository;
+import com.praveen.apipnrgateway.entity.DcsPassengerManifest;
+import com.praveen.apipnrgateway.repository.DCSPassengerManifestRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,12 +21,13 @@ import java.time.LocalDateTime;
 @Slf4j
 public class DcsGateController {
 
-    private final DCSRepository dcsRepository;
+    private final DCSPassengerManifestRepository dcsPassengerManifestRepository;
 
     @PostMapping("/scan-boarding-pass")
     public ResponseEntity<String> scanAndBoard(@RequestParam String flightId, @RequestParam String passengerId) {
         
-        DCS passenger = dcsRepository.findByFlightIdAndPassengerId(flightId, passengerId)
+
+        DcsPassengerManifest passenger = dcsPassengerManifestRepository.findByPassengerId(flightId)
                 .orElseThrow(() -> new EntityNotFoundException("Passenger not found on this flight manifest."));
 
         // DCS Enforcement Check 1: Is the passenger locked due to a government DNL?
@@ -44,8 +45,8 @@ public class DcsGateController {
 
         // Success: Passenger boards the aircraft
         passenger.setDcsStatus(DcsStatus.BOARDED);
-        passenger.setUpdatedByDcsAt(LocalDateTime.now());
-        dcsRepository.save(passenger);
+        passenger.setLastUpdatedTime(LocalDateTime.now());
+        dcsPassengerManifestRepository.save(passenger);
 
         log.info("✈️ Passenger {} successfully boarded flight {}", passengerId, flightId);
         return ResponseEntity.ok("✅ WELCOME ABOARD: Boarding cleared. Gate lock released.");

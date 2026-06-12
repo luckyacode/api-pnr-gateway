@@ -12,4 +12,5 @@ public class DCSRequest {
     private String flightId;
     private String pnrId;
     private String passengerId;
+    private String passengerName;
 }
