@@ -1,6 +1,9 @@
 package com.praveen.apipnrgateway;
 
+import com.praveen.apipnrgateway.dto.AuthorityDirection;
 import com.praveen.apipnrgateway.dto.DcsStatus;
+import com.praveen.apipnrgateway.dto.GovernmentClearanceResponse;
+import com.praveen.apipnrgateway.entity.APP;
 import com.praveen.apipnrgateway.entity.DcsFlightManifest;
 import com.praveen.apipnrgateway.entity.DcsPassengerManifest;
 import com.praveen.apipnrgateway.repository.DCSFlightManifestRepository;
@@ -14,6 +17,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/dcs/gate")
@@ -28,6 +33,13 @@ public class DcsGateController {
     @GetMapping("/flightManifest/{flightId}")
     public DcsFlightManifest searchFlightManifest(String flightId){
         return dcsFlightManifestRepository.findByFlightId(flightId).orElseThrow(()->new Exception("flight now found"));
+    }
+
+    @SneakyThrows
+    @GetMapping("/fetchAllBlockedPassengerInFlight/{flightId}")
+    public List<GovernmentClearanceResponse> fetchAllBlockedPassengerInFlight(String flightId, AuthorityDirection authorityDirection){
+        return dcsFlightManifestRepository.findDistinctByFlightId(flightId).stream().map(DcsFlightManifest::getPassengers).flatMap(Collection::stream).map(DcsPassengerManifest::getAppClearance).
+                map(APP::getGovernmentClearanceResponse).filter(m->m.getAuthorityDirective()==authorityDirection).toList();
     }
 
     @PostMapping("/scan-boarding-pass")
