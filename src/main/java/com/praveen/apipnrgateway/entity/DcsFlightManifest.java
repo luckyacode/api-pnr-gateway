@@ -38,9 +38,9 @@ public class DcsFlightManifest {
     private double totalBaggageWeightKg;
 
     // 3. One-to-Many Relationship: The actual rows of passengers on this flight
-//    @Builder.Default
-//    @OneToMany(mappedBy = "dcsManifest", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-//    private List<DcsPassengerManifest> passengers = new ArrayList<>();
+    @Builder.Default
+    @OneToMany(mappedBy = "dcsManifest", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<DcsPassengerManifest> passengers = new ArrayList<>();
 
     // 4. Operational Audit Trail
     private LocalDateTime manifestHydratedAt;
@@ -50,8 +50,8 @@ public class DcsFlightManifest {
     private boolean isManifestClosed = false; // Set to true once the aircraft doors close
 
     // Helper method to add passengers cleanly maintaining bi-directional sync
-//    public void addPassenger(DcsPassengerManifest passenger) {
-//        passengers.add(passenger);
-//        passenger.setDcsManifest(this);
-//    }
+    public void addPassenger(DcsPassengerManifest passenger) {
+        passengers.add(passenger);
+        passenger.setDcsManifest(this);
+    }
 }

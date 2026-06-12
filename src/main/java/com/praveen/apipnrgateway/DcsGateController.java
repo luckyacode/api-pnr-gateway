@@ -1,17 +1,17 @@
 package com.praveen.apipnrgateway;
 
 import com.praveen.apipnrgateway.dto.DcsStatus;
+import com.praveen.apipnrgateway.entity.DcsFlightManifest;
 import com.praveen.apipnrgateway.entity.DcsPassengerManifest;
+import com.praveen.apipnrgateway.repository.DCSFlightManifestRepository;
 import com.praveen.apipnrgateway.repository.DCSPassengerManifestRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 
@@ -22,12 +22,19 @@ import java.time.LocalDateTime;
 public class DcsGateController {
 
     private final DCSPassengerManifestRepository dcsPassengerManifestRepository;
+    private final DCSFlightManifestRepository dcsFlightManifestRepository;
+
+    @SneakyThrows
+    @GetMapping("/flightManifest/{flightId}")
+    public DcsFlightManifest searchFlightManifest(String flightId){
+        return dcsFlightManifestRepository.findByFlightId(flightId).orElseThrow(()->new Exception("flight now found"));
+    }
 
     @PostMapping("/scan-boarding-pass")
     public ResponseEntity<String> scanAndBoard(@RequestParam String flightId, @RequestParam String passengerId) {
         
-
-        DcsPassengerManifest passenger = dcsPassengerManifestRepository.findByPassengerId(flightId)
+        log.info("scan and board searching for the flight id {} and {}",flightId,passengerId);
+        DcsPassengerManifest passenger = dcsPassengerManifestRepository.findByPassengerId(passengerId)
                 .orElseThrow(() -> new EntityNotFoundException("Passenger not found on this flight manifest."));
 
         // DCS Enforcement Check 1: Is the passenger locked due to a government DNL?

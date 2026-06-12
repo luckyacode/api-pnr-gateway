@@ -1,5 +1,6 @@
 package com.praveen.apipnrgateway.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.praveen.apipnrgateway.dto.DcsStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -19,9 +20,10 @@ public class DcsPassengerManifest {
     private Long id;
 
     // Link back to the Master Flight Manifest Aggregate
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "flight_manifest_id", nullable = false)
-//    private DcsFlightManifest dcsManifest;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "flight_manifest_id")
+    @JsonIgnoreProperties("passengers")
+    private DcsFlightManifest dcsManifest;
 
     // Core Identity & PNR Binding
 //    @Column(nullable = false)

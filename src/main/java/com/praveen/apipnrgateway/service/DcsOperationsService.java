@@ -71,10 +71,10 @@ public class DcsOperationsService {
         // 🌟 FIXED: Bidirectional binding tool strategy.
         // Ensure the helper method flightManifest.addPassenger(passenger) is called,
         // or set both sides explicitly right here before writing:
-//        dcsPassengerManifest.setDcsManifest(dcsFlightManifest);
-//        if (!dcsFlightManifest.getPassengers().contains(dcsPassengerManifest)) {
-//            dcsFlightManifest.getPassengers().add(dcsPassengerManifest);
-//        }
+        dcsPassengerManifest.setDcsManifest(dcsFlightManifest);
+        if (!dcsFlightManifest.getPassengers().contains(dcsPassengerManifest)) {
+            dcsFlightManifest.getPassengers().add(dcsPassengerManifest);
+        }
         try{
         // 3. Process Government APP Clearances from Database Snapshot Audit
         APP appClearanceResult = appRepository.findByGovernmentClearanceResponse_PassengerId(passengerId)
@@ -89,6 +89,7 @@ public class DcsOperationsService {
             dcsPassengerManifest.setDcsStatus(DcsStatus.BOARDING_LOCKED);
 
             // Save the parent aggregate root container (cascades down and saves the locked passenger row)
+            dcsPassengerManifestRepository.save(dcsPassengerManifest);
             dcsFlightManifestRepository.save(dcsFlightManifest);
 
             throw new Exception("REGULATORY LOCK: Boarding pass generation blocked by government authority.");
@@ -105,6 +106,7 @@ public class DcsOperationsService {
             dcsPassengerManifest.setLastUpdatedTime(LocalDateTime.now());
 
             log.info("DCS: Check-in successful. Seat {} assigned to Pax: {}", dcsPassengerManifest.getSeatNumber(), passengerId);
+            dcsFlightManifestRepository.save(dcsFlightManifest);
             return dcsPassengerManifestRepository.save(dcsPassengerManifest);
 
         } catch (SecurityException e) {
@@ -112,6 +114,7 @@ public class DcsOperationsService {
         } catch (Exception e) {
             log.error("DCS: Internal fallback processing triggered due to system error: ", e);
             dcsPassengerManifest.setDcsStatus(DcsStatus.BOARDING_LOCKED); // Safe fallback: lock if system fails
+            dcsFlightManifestRepository.save(dcsFlightManifest);
             return dcsPassengerManifestRepository.save(dcsPassengerManifest);
         }
     }
