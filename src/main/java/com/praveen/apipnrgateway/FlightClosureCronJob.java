@@ -20,21 +20,22 @@ public class FlightClosureCronJob {
     @Scheduled(cron = "0 */5 * * * *") // Runs every 5 minutes
     @Transactional
     public void autoCloseDepartedFlights() {
-        log.info("Calling auto closure flight...");
-        LocalDateTime cutoffTime = LocalDateTime.now().minusMinutes(5);
+        LocalDateTime currentTime = LocalDateTime.now();
+        log.info("Looking Flight that will departure soon : {}",currentTime);
 
-        // Find flights that have departed but whose manifests are still open
+        LocalDateTime cutoffTime = currentTime.minusMinutes(5);
+
         List<DcsFlightManifest> activeManifests = dcsFlightManifestRepository
                 .findByIsManifestClosedFalseAndScheduledDepartureDateTimeBefore(cutoffTime);
-        if(activeManifests.isEmpty())
-            log.info("no active flight found to close auto....");
-        else {
-            log.info("auto closer flight founds ");
+        if(activeManifests.isEmpty()) {
+            log.info("No Flight are ready now : {}", currentTime);
+        } else {
+            log.info("Flight is ready to departure now : {}",currentTime);
         }
         for (DcsFlightManifest manifest : activeManifests) {
-            log.info("flight is auto closing : {}",manifest.getFlightId());
+            log.info("Flight is departuring now  {} from airport {}",manifest.getFlightId(),manifest.getDeparturePort());
             manifest.setManifestClosed(Boolean.TRUE);
-            manifest.setFinalManifestClosedAt(LocalDateTime.now());
+            manifest.setFinalManifestClosedAt(currentTime);
 
             dcsFlightManifestRepository.save(manifest);
             log.info("DCS BATCH: Auto-closed manifest for flight: {}", manifest.getFlightId());
