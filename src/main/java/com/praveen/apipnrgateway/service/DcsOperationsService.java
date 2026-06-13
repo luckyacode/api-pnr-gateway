@@ -96,6 +96,7 @@ public class DcsOperationsService {
 
         // 4. Enforce Border Directives
         if (AuthorityDirection.DNL == directive) {
+            log.info("DCS complain : {}",directive.getDescription());
             log.error("DCS COMPLIANCE ALERT: Government returned DNL. Hard locking passenger row.");
             dcsPassengerManifest.setDcsStatus(DcsStatus.BOARDING_LOCKED);
 
