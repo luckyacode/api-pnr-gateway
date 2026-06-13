@@ -17,7 +17,7 @@ import java.util.List;
 public class FlightClosureCronJob {
     private final DCSFlightManifestRepository dcsFlightManifestRepository;
 
-    @Scheduled(cron = "0 */5 * * * *") // Runs every 5 minutes
+    @Scheduled(cron = "0 */2 * * * *") // Runs every 5 minutes
     @Transactional
     public void autoCloseDepartedFlights() {
         log.info("Calling auto closure flight...");

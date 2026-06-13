@@ -7,6 +7,7 @@ import com.praveen.apipnrgateway.entity.APP;
 import com.praveen.apipnrgateway.entity.DcsFlightManifest;
 import com.praveen.apipnrgateway.entity.DcsPassengerManifest;
 import com.praveen.apipnrgateway.entity.FlightManifest;
+import com.praveen.apipnrgateway.helper.AirlineException;
 import com.praveen.apipnrgateway.repository.APPRepository;
 import com.praveen.apipnrgateway.repository.DCSFlightManifestRepository;
 import com.praveen.apipnrgateway.repository.DCSPassengerManifestRepository;
@@ -53,6 +54,11 @@ public class DcsOperationsService {
                         .manifestHydratedAt(LocalDateTime.now())
                         .isManifestClosed(Boolean.FALSE)
                         .build());
+
+        if(dcsFlightManifest.isManifestClosed()){
+            log.info("Sorry, Flight is already departured .....no new passenger allowed...");
+            throw AirlineException.serverError("Flight is already departured .");
+        }
 
         Random r = new Random();
         log.info("DCS: Fetching or creating passenger line-item manifest row securely.");
