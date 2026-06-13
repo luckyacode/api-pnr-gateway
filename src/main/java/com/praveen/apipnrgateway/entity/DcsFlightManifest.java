@@ -32,6 +32,9 @@ public class DcsFlightManifest {
 
 //    @Column(nullable = false)
     private String flightDate;        // e.g., "2026-06-12"
+    private LocalDateTime scheduledDepartureDateTime;
+    private LocalDateTime scheduledArrivalDateTime;
+
 
     // 2. Flight Weight & Balance Summaries (Calculated dynamically by the DCS)
     private int totalCheckedBags;

@@ -1,5 +1,6 @@
 package com.praveen.apipnrgateway.service;
 
+import com.praveen.apipnrgateway.Utils;
 import com.praveen.apipnrgateway.dto.AuthorityDirection;
 import com.praveen.apipnrgateway.dto.DcsStatus;
 import com.praveen.apipnrgateway.entity.APP;
@@ -36,7 +37,7 @@ public class DcsOperationsService {
 
         // 1. Fetch core static routing configuration data
         FlightManifest flight = flightRepository.findByFlightId(flightId)
-                .orElseThrow(() -> new Exception("Flight core template configuration not found"));
+                .orElseThrow(() -> new Exception("Flight  not found"));
 
         // 2. Fetch or build the parent Flight Manifest entity
         DcsFlightManifest dcsFlightManifest = dcsFlightManifestRepository.findByFlightId(flightId)
@@ -45,8 +46,10 @@ public class DcsOperationsService {
                         .departurePort(flight.getDepartureAirport())
                         .arrivalPort(flight.getArrivalAirport())
                         .flightDate(flight.getDepartureDate().toString())
-                        .totalCheckedBags(1)
-                        .totalBaggageWeightKg(1.0)
+                        .scheduledDepartureDateTime(flight.getScheduledDepartureDateTime())
+                        .scheduledArrivalDateTime(flight.getScheduledArrivalDateTime())
+//                        .totalCheckedBags(1)
+//                        .totalBaggageWeightKg(1.0)
                         .manifestHydratedAt(LocalDateTime.now())
                         .isManifestClosed(Boolean.FALSE)
                         .build());
@@ -61,8 +64,8 @@ public class DcsOperationsService {
                         .pnrId(pnrId)
                         .passengerId(passengerId)
                         .passengerName(passengerName)
-                        .baggageCount(r.nextInt(1, 4))
-                        .totalBagWeight(r.nextDouble(1.0, 7.0))
+                        .baggageCount(Utils.next(1, 4))
+                        .totalBagWeight(Utils.nextDouble(1, 7))
                         .specialServiceRequest("WCHR/VGML")
                         .dcsStatus(DcsStatus.NOT_CHECKED_IN)
                         .lastUpdatedTime(LocalDateTime.now())
@@ -71,6 +74,8 @@ public class DcsOperationsService {
         // 🌟 FIXED: Bidirectional binding tool strategy.
         // Ensure the helper method flightManifest.addPassenger(passenger) is called,
         // or set both sides explicitly right here before writing:
+        dcsFlightManifest.setTotalCheckedBags(dcsFlightManifest.getTotalCheckedBags()+dcsPassengerManifest.getBaggageCount());
+        dcsFlightManifest.setTotalBaggageWeightKg(dcsFlightManifest.getTotalBaggageWeightKg()+dcsPassengerManifest.getTotalBagWeight());
         dcsPassengerManifest.setDcsManifest(dcsFlightManifest);
         if (!dcsFlightManifest.getPassengers().contains(dcsPassengerManifest)) {
             dcsFlightManifest.getPassengers().add(dcsPassengerManifest);
