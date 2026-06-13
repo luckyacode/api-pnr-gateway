@@ -1,10 +1,9 @@
-package com.praveen.apipnrgateway;
+package com.praveen.apipnrgateway.service;
 
 
 import com.praveen.apipnrgateway.dto.AuthorityDirection;
 import com.praveen.apipnrgateway.dto.CheckInRequest;
 import com.praveen.apipnrgateway.dto.GovernmentClearanceResponse;
-import com.praveen.apipnrgateway.dto.PNRRequest;
 import com.praveen.apipnrgateway.entity.PNR;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;

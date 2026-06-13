@@ -1,7 +1,7 @@
 package com.praveen.apipnrgateway.service;
 
-import com.praveen.apipnrgateway.CommonMapper;
-import com.praveen.apipnrgateway.Utils;
+import com.praveen.apipnrgateway.helper.CommonMapper;
+import com.praveen.apipnrgateway.helper.Utils;
 import com.praveen.apipnrgateway.dto.PNRRequest;
 import com.praveen.apipnrgateway.entity.FlightManifest;
 import com.praveen.apipnrgateway.entity.PNR;

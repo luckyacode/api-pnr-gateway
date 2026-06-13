@@ -1,6 +1,7 @@
-package com.praveen.apipnrgateway;
+package com.praveen.apipnrgateway.kafka;
 
 
+import com.praveen.apipnrgateway.helper.Utils;
 import com.praveen.apipnrgateway.dto.CheckInRequest;
 import com.praveen.apipnrgateway.dto.DCSRequest;
 import com.praveen.apipnrgateway.dto.GovernmentClearanceResponse;
@@ -8,6 +9,7 @@ import com.praveen.apipnrgateway.dto.PNRRequest;
 import com.praveen.apipnrgateway.entity.CheckInResponse;
 import com.praveen.apipnrgateway.entity.PNR;
 import com.praveen.apipnrgateway.service.DcsOperationsService;
+import com.praveen.apipnrgateway.service.GovernmentSimulatorService;
 import com.praveen.apipnrgateway.service.PNRService;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;

@@ -1,4 +1,4 @@
-package com.praveen.apipnrgateway;
+package com.praveen.apipnrgateway.helper;
 
 import com.praveen.apipnrgateway.entity.PNR;
 import tools.jackson.databind.ObjectMapper;

@@ -1,6 +1,6 @@
 package com.praveen.apipnrgateway.service;
 
-import com.praveen.apipnrgateway.Utils;
+import com.praveen.apipnrgateway.helper.Utils;
 import com.praveen.apipnrgateway.dto.AuthorityDirection;
 import com.praveen.apipnrgateway.dto.DcsStatus;
 import com.praveen.apipnrgateway.entity.APP;

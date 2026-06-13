@@ -1,5 +1,6 @@
-package com.praveen.apipnrgateway;
+package com.praveen.apipnrgateway.kafka;
 
+import com.praveen.apipnrgateway.helper.Utils;
 import com.praveen.apipnrgateway.dto.CheckInRequest;
 import com.praveen.apipnrgateway.dto.DCSRequest;
 import com.praveen.apipnrgateway.dto.PNRRequest;
