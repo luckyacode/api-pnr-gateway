@@ -4,10 +4,11 @@ import com.praveen.apipnrgateway.entity.PNR;
 import tools.jackson.databind.ObjectMapper;
 
 import java.time.format.DateTimeFormatter;
+import java.util.Random;
 
 public class Utils {
     public static ObjectMapper objectMapper = new ObjectMapper();
-
+    public static Random random = new Random();
     public static <T> String objectToJson(T object) {
         return objectMapper.writeValueAsString(object);
     }
@@ -15,6 +16,16 @@ public class Utils {
     public static <T> T jsonToObject(String json, Class<T> targetClass) {
         return objectMapper.readValue(json, targetClass);
     }
+
+    public static int next(int i,int j){
+        return random.nextInt(i,j);
+    }
+
+    public static double nextDouble(int i,int j){
+        return random.nextDouble(i,j);
+    }
+
+
 
     public static String convertToEdifact(PNR pnr) {
         StringBuilder edi = new StringBuilder();
