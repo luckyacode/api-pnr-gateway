@@ -19,6 +19,8 @@ spring:
   ###----Exactly One Delivery Semantics
   kafka:
     bootstrap-servers: ${kafka-host:localhost}:${kafka-port:9092}
+    template:
+      observation-enabled: true
 
     # === CONSUMER CONFIGURATION ===
     consumer:
@@ -43,6 +45,7 @@ spring:
     # === LISTENER CONFIGURATION ===
     listener:
       ack-mode: RECORD
+      observation-enabled: true
     #----Exactly One Delivery Semantics
 management:
   endpoints:
@@ -58,3 +61,6 @@ management:
       application: api-pnr-gateway
 server:
   port: ${SERVER_PORT:8087}
+logging:
+  pattern:
+    correlation: "[%X{traceId:-},%X{spanId:-}]"
