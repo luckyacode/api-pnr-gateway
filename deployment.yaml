@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: pnr-gateway-container
-          image: pnr-gateway:1     # Docker image registry/name and immutable version tag
+          image: pnr-gateway:2     # Docker image registry/name and immutable version tag
           # 1. BULK ENVIRONMENT VARIABLES (App Configurations)
           envFrom:
             - configMapRef:
@@ -25,11 +25,11 @@ spec:
           # 2. NETWORKING SINGLE SOURCE OF TRUTH (Infra Configuration)
           env:
             - name: SERVER_PORT
-              value: "8080" # Tells Spring Boot's embedded Tomcat exactly which port to listen on
+              value: "8087" # Tells Spring Boot's embedded Tomcat exactly which port to listen on
           # 3. CONTAINER NETWORK EXPOSURE
           ports:
             - name: http-port       # A friendly alias/label given to this specific port mapping
-              containerPort: 8080   # Opens this port on the container boundary (matches SERVER_PORT)
+              containerPort: 8087   # Opens this port on the container boundary (matches SERVER_PORT)
 
 #          # 4. HEALTH CHECKS (Probes)
 #          livenessProbe:
