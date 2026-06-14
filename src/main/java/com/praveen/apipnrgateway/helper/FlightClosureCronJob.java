@@ -1,4 +1,4 @@
-package com.praveen.apipnrgateway;
+package com.praveen.apipnrgateway.helper;
 
 import com.praveen.apipnrgateway.entity.DcsFlightManifest;
 import com.praveen.apipnrgateway.repository.DCSFlightManifestRepository;

@@ -1,4 +1,4 @@
-package com.praveen.apipnrgateway;
+package com.praveen.apipnrgateway.controller;
 
 import com.praveen.apipnrgateway.entity.PNR;
 import com.praveen.apipnrgateway.service.PNRService;

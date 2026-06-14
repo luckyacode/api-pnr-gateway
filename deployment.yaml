@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pnr-gateway    # Unique name identifying this deployment resource
+spec:
+  replicas: 2                # High Availability: Guarantees 2 identical pods always run
+  selector:
+    matchLabels:
+      app: pnr-gateway           # How the deployment tracks which pods belong to it
+  template:
+    metadata:
+      labels:
+        app: pnr-gateway         # The label stamped on pods. MUST match the Service selector!
+    spec:
+      containers:
+        - name: pnr-gateway-container
+          image: pnr-gateway:2     # Docker image registry/name and immutable version tag
+          # 1. BULK ENVIRONMENT VARIABLES (App Configurations)
+          envFrom:
+            - configMapRef:
+                name: app-config       # Auto-injects all non-sensitive app settings
+            - secretRef:
+                name: app-secrets   # Auto-injects all sensitive credentials (DB passwords, keys)
+
+          # 2. NETWORKING SINGLE SOURCE OF TRUTH (Infra Configuration)
+          env:
+            - name: SERVER_PORT
+              value: "8087" # Tells Spring Boot's embedded Tomcat exactly which port to listen on
+          # 3. CONTAINER NETWORK EXPOSURE
+          ports:
+            - name: http-port       # A friendly alias/label given to this specific port mapping
+              containerPort: 8087   # Opens this port on the container boundary (matches SERVER_PORT)
+
+#          # 4. HEALTH CHECKS (Probes)
+#          livenessProbe:
+#            httpGet:
+#              path: /actuator/health/liveness
+#              port: http-port       # Safely points to the 'http-port' name alias defined above
+#            initialDelaySeconds: 20 # Wait 20s before checking health, allowing JVM time to warm up
+#            periodSeconds: 20       # Re-verify container vitality every 20 seconds
+#
+#          readinessProbe:
+#            httpGet:
+#              path: /actuator/health/readiness
+#              port: http-port       # Safely points to the 'http-port' name alias defined above
+#            initialDelaySeconds: 20 # Wait 20s before checking readiness to allow full initialization
+#            periodSeconds: 20       # Re-verify readiness every 20 seconds before routing traffic

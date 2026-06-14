@@ -1,7 +1,8 @@
 package com.praveen.apipnrgateway.service;
 
-import com.praveen.apipnrgateway.CommonMapper;
-import com.praveen.apipnrgateway.Utils;
+import com.praveen.apipnrgateway.helper.AirlineException;
+import com.praveen.apipnrgateway.helper.CommonMapper;
+import com.praveen.apipnrgateway.helper.Utils;
 import com.praveen.apipnrgateway.dto.PNRRequest;
 import com.praveen.apipnrgateway.entity.FlightManifest;
 import com.praveen.apipnrgateway.entity.PNR;
@@ -25,7 +26,7 @@ public class PNRService {
     private final FlightRepository flightRepository;
 
     public PNR getPNRById(String id) throws Exception {
-        return pnrRepository.findBypnrId(id).orElseThrow(()->new Exception("pnr not found..."));
+        return pnrRepository.findBypnrId(id).orElseThrow(()->AirlineException.badRequest("pnr not found..."));
     }
 
     public List<PNR> findAll(){
@@ -34,9 +35,9 @@ public class PNRService {
 
     public PNR addPNR(PNRRequest pnrRequest) {
         PNR mappedPNR = commonMapper.toPNR(pnrRequest);
-        FlightManifest flightManifest = flightRepository.findByFlightId(pnrRequest.getFlightId()).orElseThrow(() -> new RuntimeException("flight not scheduled..."));
+        FlightManifest flightManifest = flightRepository.findByFlightId(pnrRequest.getFlightId()).orElseThrow(() -> AirlineException.serverError("flight not scheduled..."));
         mappedPNR.setFlight(flightManifest);
-        Passenger passenger = passengerRepository.findById(pnrRequest.getPassengerId()).orElseThrow(() -> new RuntimeException("passenger not found..."));
+        Passenger passenger = passengerRepository.findById(pnrRequest.getPassengerId()).orElseThrow(() -> AirlineException.serverError("passenger not found..."));
         mappedPNR.setPassenger(passenger);
         PNR pnr = pnrRepository.save(mappedPNR);
         log.info("Saved PNR to db . {}", pnr);

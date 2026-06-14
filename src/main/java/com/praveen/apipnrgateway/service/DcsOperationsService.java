@@ -1,6 +1,6 @@
 package com.praveen.apipnrgateway.service;
 
-import com.praveen.apipnrgateway.Utils;
+import com.praveen.apipnrgateway.helper.Utils;
 import com.praveen.apipnrgateway.dto.AuthorityDirection;
 import com.praveen.apipnrgateway.dto.DcsStatus;
 import com.praveen.apipnrgateway.entity.APP;
@@ -38,7 +38,7 @@ public class DcsOperationsService {
 
         // 1. Fetch core static routing configuration data
         FlightManifest flight = flightRepository.findByFlightId(flightId)
-                .orElseThrow(() -> new Exception("Flight  not found"));
+                .orElseThrow(() -> AirlineException.badRequest("Flight  not found"));
 
         // 2. Fetch or build the parent Flight Manifest entity
         DcsFlightManifest dcsFlightManifest = dcsFlightManifestRepository.findByFlightId(flightId)
@@ -89,13 +89,14 @@ public class DcsOperationsService {
         try{
         // 3. Process Government APP Clearances from Database Snapshot Audit
         APP appClearanceResult = appRepository.findByGovernmentClearanceResponse_PassengerId(passengerId)
-                .orElseThrow(() -> new RuntimeException("Regulatory clearance data missing for passenger identity token"));
+                .orElseThrow(() -> AirlineException.serverError("Regulatory clearance data missing for passenger identity token"));
 
         dcsPassengerManifest.setAppClearance(appClearanceResult);
         AuthorityDirection directive = appClearanceResult.getGovernmentClearanceResponse().getAuthorityDirective();
 
         // 4. Enforce Border Directives
         if (AuthorityDirection.DNL == directive) {
+            log.info("DCS complain : {}",directive.getDescription());
             log.error("DCS COMPLIANCE ALERT: Government returned DNL. Hard locking passenger row.");
             dcsPassengerManifest.setDcsStatus(DcsStatus.BOARDING_LOCKED);
 
@@ -103,7 +104,7 @@ public class DcsOperationsService {
             dcsPassengerManifestRepository.save(dcsPassengerManifest);
             dcsFlightManifestRepository.save(dcsFlightManifest);
 
-            throw new Exception("REGULATORY LOCK: Boarding pass generation blocked by government authority.");
+            throw AirlineException.serverError("REGULATORY LOCK: Boarding pass generation blocked by government authority.");
         }
 
             if (AuthorityDirection.CHCK==directive) {

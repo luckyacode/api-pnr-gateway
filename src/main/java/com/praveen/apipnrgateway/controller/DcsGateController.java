@@ -1,4 +1,4 @@
-package com.praveen.apipnrgateway;
+package com.praveen.apipnrgateway.controller;
 
 import com.praveen.apipnrgateway.dto.AuthorityDirection;
 import com.praveen.apipnrgateway.dto.DcsStatus;
@@ -6,6 +6,7 @@ import com.praveen.apipnrgateway.dto.GovernmentClearanceResponse;
 import com.praveen.apipnrgateway.entity.APP;
 import com.praveen.apipnrgateway.entity.DcsFlightManifest;
 import com.praveen.apipnrgateway.entity.DcsPassengerManifest;
+import com.praveen.apipnrgateway.helper.AirlineException;
 import com.praveen.apipnrgateway.repository.DCSFlightManifestRepository;
 import com.praveen.apipnrgateway.repository.DCSPassengerManifestRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -32,7 +33,7 @@ public class DcsGateController {
     @SneakyThrows
     @GetMapping("/flightManifest/{flightId}")
     public DcsFlightManifest searchFlightManifest(String flightId){
-        return dcsFlightManifestRepository.findByFlightId(flightId).orElseThrow(()->new Exception("flight now found"));
+        return dcsFlightManifestRepository.findByFlightId(flightId).orElseThrow(()-> AirlineException.badRequest("flight now found"));
     }
 
     @SneakyThrows
