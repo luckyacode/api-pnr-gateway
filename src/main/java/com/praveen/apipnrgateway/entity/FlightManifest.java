@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -31,8 +32,8 @@ public class FlightManifest {
     private LocalTime departureTime;
     private LocalDate arrivalDate;
     private LocalTime arrivalTime;
-    private LocalDateTime scheduledDepartureDateTime;
-    private LocalDateTime scheduledArrivalDateTime;
+    private Instant scheduledDepartureDateTime;
+    private Instant scheduledArrivalDateTime;
     @Enumerated(value = EnumType.STRING)
     private Status status;
 }

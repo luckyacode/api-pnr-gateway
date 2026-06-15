@@ -15,6 +15,9 @@ spring:
     driver-class-name: org.postgresql.Driver
     username: ${postgres-user:root}
     password: ${postgres-password:pnr_db}
+    # Cap individual pods so they don't hoard connections
+    hikari:
+      maximum-pool-size=4:
 
   ###----Exactly One Delivery Semantics
   kafka:

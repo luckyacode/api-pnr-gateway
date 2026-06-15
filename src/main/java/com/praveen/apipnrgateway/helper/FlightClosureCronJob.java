@@ -8,6 +8,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -17,13 +19,13 @@ import java.util.List;
 public class FlightClosureCronJob {
     private final DCSFlightManifestRepository dcsFlightManifestRepository;
 
-    @Scheduled(cron = "0 */5 * * * *") // Runs every 5 minutes
+    @Scheduled(cron = "0 */1 * * * *") // Runs every 5 minutes
     @Transactional
     public void autoCloseDepartedFlights() {
-        LocalDateTime currentTime = LocalDateTime.now();
+        Instant currentTime = Instant.now();
         log.info("Looking Flight that will departure soon : {}",currentTime);
 
-        LocalDateTime cutoffTime = currentTime.minusMinutes(5);
+        Instant cutoffTime = currentTime.minus(Duration.ofMinutes(5));
 
         List<DcsFlightManifest> activeManifests = dcsFlightManifestRepository
                 .findByIsManifestClosedFalseAndScheduledDepartureDateTimeBefore(cutoffTime);

@@ -3,6 +3,7 @@ package com.praveen.apipnrgateway.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,8 +33,8 @@ public class DcsFlightManifest {
 
 //    @Column(nullable = false)
     private String flightDate;        // e.g., "2026-06-12"
-    private LocalDateTime scheduledDepartureDateTime;
-    private LocalDateTime scheduledArrivalDateTime;
+    private Instant scheduledDepartureDateTime;
+    private Instant scheduledArrivalDateTime;
 
 
     // 2. Flight Weight & Balance Summaries (Calculated dynamically by the DCS)
@@ -47,7 +48,7 @@ public class DcsFlightManifest {
 
     // 4. Operational Audit Trail
     private LocalDateTime manifestHydratedAt;
-    private LocalDateTime finalManifestClosedAt;
+    private Instant finalManifestClosedAt;
 
     @Builder.Default
     private boolean isManifestClosed = false; // Set to true once the aircraft doors close
