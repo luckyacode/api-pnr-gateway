@@ -1,74 +1,65 @@
 package com.praveen.apipnrgateway.controller;
 
+import com.praveen.apipnrgateway.dto.ApiResponse;
 import com.praveen.apipnrgateway.dto.AuthorityDirection;
-import com.praveen.apipnrgateway.dto.DcsStatus;
+import com.praveen.apipnrgateway.dto.BoardingScanRequest;
 import com.praveen.apipnrgateway.dto.GovernmentClearanceResponse;
-import com.praveen.apipnrgateway.entity.APP;
 import com.praveen.apipnrgateway.entity.DcsFlightManifest;
-import com.praveen.apipnrgateway.entity.DcsPassengerManifest;
-import com.praveen.apipnrgateway.helper.AirlineException;
-import com.praveen.apipnrgateway.repository.DCSFlightManifestRepository;
-import com.praveen.apipnrgateway.repository.DCSPassengerManifestRepository;
-import jakarta.persistence.EntityNotFoundException;
+import com.praveen.apipnrgateway.service.DcsGateService;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
-import java.util.Collection;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/dcs/gate")
+@RequestMapping("/api/v1/dcs/gates") // Clean plural resource
 @RequiredArgsConstructor
 @Slf4j
 public class DcsGateController {
 
-    private final DCSPassengerManifestRepository dcsPassengerManifestRepository;
-    private final DCSFlightManifestRepository dcsFlightManifestRepository;
+    private final DcsGateService dcsGateService;
 
-    @SneakyThrows
-    @GetMapping("/flightManifest/{flightId}")
-    public DcsFlightManifest searchFlightManifest(String flightId){
-        return dcsFlightManifestRepository.findByFlightId(flightId).orElseThrow(()-> AirlineException.badRequest("flight now found"));
+    /**
+     * Fetch flight manifest metadata.
+     * Path: GET /api/v1/dcs/gates/flight-manifest/SQ22
+     */
+    @GetMapping("/flight-manifest/{flightId}")
+    public ResponseEntity<ApiResponse<DcsFlightManifest>> searchFlightManifest(@PathVariable String flightId) {
+        return dcsGateService.getFlightManifest(flightId)
+                .map(manifest -> ApiResponse.ok(manifest, "Flight Manifest Retreived"))
+                .orElseGet(() -> ApiResponse.notFound("Flight manifest not found for ID: " + flightId));
     }
 
-    @SneakyThrows
-    @GetMapping("/fetchAllBlockedPassengerInFlight/{flightId}")
-    public List<GovernmentClearanceResponse> fetchAllBlockedPassengerInFlight(String flightId, AuthorityDirection authorityDirection){
-        return dcsFlightManifestRepository.findDistinctByFlightId(flightId).stream().map(DcsFlightManifest::getPassengers).flatMap(Collection::stream).map(DcsPassengerManifest::getAppClearance).
-                map(APP::getGovernmentClearanceResponse).filter(m->m.getAuthorityDirective()==authorityDirection).toList();
+    /**
+     * Fetch all passengers with a specific regulatory/authority block.
+     * Path: GET /api/v1/dcs/gates/flight-manifest/SQ22/blocked-passengers?direction=DENY_BOARDING
+     */
+    @GetMapping("/flight-manifest/{flightId}/blocked-passengers")
+    public ResponseEntity<ApiResponse<List<GovernmentClearanceResponse>>> fetchAllBlockedPassengerInFlight(
+            @PathVariable String flightId,
+            @RequestParam("direction") AuthorityDirection authorityDirection) {
+
+        List<GovernmentClearanceResponse> blockedList = dcsGateService.getBlockedPassengers(flightId, authorityDirection);
+        return ApiResponse.ok(blockedList, "Fetched blocked passengers successfully");
     }
 
+    /**
+     * Scan a boarding pass and clear the gate lock.
+     * Path: POST /api/v1/dcs/gates/scan-boarding-pass
+     */
     @PostMapping("/scan-boarding-pass")
-    public ResponseEntity<String> scanAndBoard(@RequestParam String flightId, @RequestParam String passengerId) {
-        
-        log.info("scan and board searching for the flight id {} and {}",flightId,passengerId);
-        DcsPassengerManifest passenger = dcsPassengerManifestRepository.findByPassengerId(passengerId)
-                .orElseThrow(() -> new EntityNotFoundException("Passenger not found on this flight manifest."));
+    public ResponseEntity<ApiResponse<String>> scanAndBoard(@RequestBody BoardingScanRequest request) {
+        log.info("Gate boarding request initiated for Flight: {} and Passenger: {}", request.getFlightId(), request.getPassengerId());
 
-        // DCS Enforcement Check 1: Is the passenger locked due to a government DNL?
-        if (passenger.getDcsStatus() == DcsStatus.BOARDING_LOCKED) {
-            log.error("🚨 GATE ALARM: Attempts to board a BLOCKED passenger (ID: {})!", passengerId);
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body("❌ BOARDING DENIED: Government security hold active. Do not allow passenger past the gate.");
+        // Let the service handle business exceptions; controller dictates response structure
+        try {
+            String gateMessage = dcsGateService.processBoarding(request.getFlightId(), request.getPassengerId());
+            return ApiResponse.ok(gateMessage, "Boarding Cleared");
+        } catch (Exception ex) {
+            log.error("🚨 GATE ALARM INTERACTED: Passenger ID {} triggered security hold!", request.getPassengerId());
+            return ApiResponse.error(ex.getMessage()); // Returns your Constants.FAILURE structure
         }
-
-        // DCS Enforcement Check 2: Did they skip check-in?
-        if (passenger.getDcsStatus() == DcsStatus.NOT_CHECKED_IN) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("❌ REJECTED: Passenger has not checked in or assigned a seat.");
-        }
-
-        // Success: Passenger boards the aircraft
-        passenger.setDcsStatus(DcsStatus.BOARDED);
-        passenger.setLastUpdatedTime(LocalDateTime.now());
-        dcsPassengerManifestRepository.save(passenger);
-
-        log.info("✈️ Passenger {} successfully boarded flight {}", passengerId, flightId);
-        return ResponseEntity.ok("✅ WELCOME ABOARD: Boarding cleared. Gate lock released.");
     }
 }

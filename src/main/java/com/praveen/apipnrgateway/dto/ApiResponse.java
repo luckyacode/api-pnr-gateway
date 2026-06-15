@@ -53,4 +53,10 @@ public class ApiResponse<T> {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new ApiResponse<>(ResponseStatus.FAILURE, message, Instant.now(), null));
     }
+
+    public static <T> ResponseEntity<ApiResponse<T>> forbidden(String message) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(new ApiResponse<>(ResponseStatus.FAILURE, message, Instant.now(), null));
+    }
+
 }

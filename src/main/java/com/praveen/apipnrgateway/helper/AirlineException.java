@@ -39,6 +39,14 @@ public class AirlineException extends RuntimeException {
         return new AirlineException(message,HttpStatus.BAD_REQUEST);
     }
 
+    public static AirlineException forbidden(String message){
+        return new AirlineException(message,HttpStatus.FORBIDDEN);
+    }
+
+    public static AirlineException unAuthorize(String message){
+        return new AirlineException(message,HttpStatus.UNAUTHORIZED);
+    }
+
     public static AirlineException conflict(String message,Exception e){
         return new AirlineException(message,HttpStatus.CONFLICT,e);
     }
