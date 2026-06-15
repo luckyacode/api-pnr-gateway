@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -25,8 +26,12 @@ public class PNRService {
     private final PassengerRepository passengerRepository;
     private final FlightRepository flightRepository;
 
-    public PNR getPNRById(String id) throws Exception {
-        return pnrRepository.findBypnrId(id).orElseThrow(()->AirlineException.badRequest("pnr not found..."));
+    public PNR getPNRById(String id) {
+        return getOptionalPNRById(id).orElseThrow(() -> AirlineException.notFound("PNR with " + id + " not found"));
+    }
+
+    public Optional<PNR> getOptionalPNRById(String id)  {
+        return pnrRepository.findBypnrId(id);
     }
 
     public List<PNR> findAll(){
@@ -44,7 +49,7 @@ public class PNRService {
         return pnr;
     }
 
-    public String getPNRMessageById(String id) throws Exception {
-        return Utils.convertToEdifact(getPNRById(id));
+    public Optional<String> getEdifactMessageByPnrId(String id) {
+        return getOptionalPNRById(id).map(Utils::convertToEdifact);
     }
 }
