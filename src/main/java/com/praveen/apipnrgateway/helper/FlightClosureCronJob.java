@@ -1,7 +1,10 @@
 package com.praveen.apipnrgateway.helper;
 
+import com.praveen.apipnrgateway.dto.DcsStatus;
 import com.praveen.apipnrgateway.entity.DcsFlightManifest;
+import com.praveen.apipnrgateway.entity.DcsPassengerManifest;
 import com.praveen.apipnrgateway.repository.DCSFlightManifestRepository;
+import com.praveen.apipnrgateway.repository.DCSPassengerManifestRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -18,7 +21,7 @@ import java.util.List;
 @Service
 public class FlightClosureCronJob {
     private final DCSFlightManifestRepository dcsFlightManifestRepository;
-
+    private final DCSPassengerManifestRepository dcsPassengerManifestRepository;
     @Scheduled(cron = "0 */1 * * * *") // Runs every 5 minutes
     @Transactional
     public void autoCloseDepartedFlights() {
@@ -36,6 +39,11 @@ public class FlightClosureCronJob {
         }
         for (DcsFlightManifest manifest : activeManifests) {
             log.info("Flight is departuring now  {} from airport {}",manifest.getFlightId(),manifest.getDeparturePort());
+            log.info("Fetching all boarded passenger : ");
+            List<DcsPassengerManifest> plist = dcsPassengerManifestRepository.findByDcsManifest_flightIdAndDcsStatus(manifest.getFlightId(), DcsStatus.CHECKED_IN);
+            plist.forEach(passenger -> {
+                log.info("Passenger onboarded in flight {} -> : [ {} {} ]",manifest.getFlightId(), passenger.getPassengerId(),passenger.getPassengerName());
+            });
             manifest.setManifestClosed(Boolean.TRUE);
             manifest.setFinalManifestClosedAt(currentTime);
 
