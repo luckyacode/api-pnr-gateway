@@ -10,7 +10,7 @@ import com.praveen.apipnrgateway.entity.CheckInResponse;
 import com.praveen.apipnrgateway.entity.PNR;
 import com.praveen.apipnrgateway.service.DcsOperationsService;
 import com.praveen.apipnrgateway.service.GovernmentSimulatorService;
-import com.praveen.apipnrgateway.service.PNRService;
+import com.praveen.apipnrgateway.service.PnrService;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +22,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class KafkaService {
     private final KafkaTemplate<String,String>  kafkaTemplate;
-    private final PNRService pnrService;
+    private final PnrService pnrService;
     private final GovernmentSimulatorService governmentSimulatorService;
     private final KafkaPublisher kafkaPublisher;
     private final DcsOperationsService dcsOperationsService;
@@ -34,7 +34,7 @@ public class KafkaService {
     @SneakyThrows
     public void processCheckInMessage(CheckInRequest checkInRequest) {
         log.info("Processing CheckIn ...{}",checkInRequest);
-        PNR pnr = pnrService.getPNRById(checkInRequest.getPnrId());
+        PNR pnr = pnrService.getPnrById(checkInRequest.getPnrId());
         GovernmentClearanceResponse  governmentClearanceResponse = governmentSimulatorService.processClearance(checkInRequest,pnr);
         CheckInResponse checkInResponse = CheckInResponse.builder().
                 pnrId(checkInRequest.getPnrId()).

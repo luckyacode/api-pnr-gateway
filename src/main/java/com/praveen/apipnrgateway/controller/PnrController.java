@@ -2,8 +2,7 @@ package com.praveen.apipnrgateway.controller;
 
 import com.praveen.apipnrgateway.dto.ApiResponse;
 import com.praveen.apipnrgateway.entity.PNR;
-import com.praveen.apipnrgateway.helper.Utils;
-import com.praveen.apipnrgateway.service.PNRService;
+import com.praveen.apipnrgateway.service.PnrService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,12 +15,12 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/pnr-data")
 @RequiredArgsConstructor
-public class PNRController {
-    private final PNRService pnrService;
+public class PnrController {
+    private final PnrService pnrService;
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<PNR>> getById(@PathVariable String id)  {
-        return pnrService.getOptionalPNRById(id).map(pnr ->
+        return pnrService.getOptionalPnrById(id).map(pnr ->
                 ApiResponse.ok(pnr, "PNR Found")).orElseGet(
                 () -> ApiResponse.notFound("PNR with " + id + " not found"));
     }

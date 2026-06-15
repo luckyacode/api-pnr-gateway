@@ -7,6 +7,6 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface PNRRepository extends JpaRepository<PNR,Integer> {
-    Optional<PNR> findBypnrId(String pnrId);
+public interface PnrRepository extends JpaRepository<PNR,Integer> {
+    Optional<PNR> findByPnrId(String pnrId);
 }

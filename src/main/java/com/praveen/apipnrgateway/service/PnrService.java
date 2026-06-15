@@ -8,8 +8,8 @@ import com.praveen.apipnrgateway.entity.FlightManifest;
 import com.praveen.apipnrgateway.entity.PNR;
 import com.praveen.apipnrgateway.entity.Passenger;
 import com.praveen.apipnrgateway.repository.FlightRepository;
-import com.praveen.apipnrgateway.repository.PNRRepository;
 import com.praveen.apipnrgateway.repository.PassengerRepository;
+import com.praveen.apipnrgateway.repository.PnrRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,18 +20,18 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class PNRService {
-    private final PNRRepository pnrRepository;
+public class PnrService {
+    private final PnrRepository pnrRepository;
     private final CommonMapper commonMapper;
     private final PassengerRepository passengerRepository;
     private final FlightRepository flightRepository;
 
-    public PNR getPNRById(String id) {
-        return getOptionalPNRById(id).orElseThrow(() -> AirlineException.notFound("PNR with " + id + " not found"));
+    public PNR getPnrById(String id) {
+        return getOptionalPnrById(id).orElseThrow(() -> AirlineException.notFound("PNR with " + id + " not found"));
     }
 
-    public Optional<PNR> getOptionalPNRById(String id)  {
-        return pnrRepository.findBypnrId(id);
+    public Optional<PNR> getOptionalPnrById(String id)  {
+        return pnrRepository.findByPnrId(id);
     }
 
     public List<PNR> findAll(){
@@ -50,6 +50,6 @@ public class PNRService {
     }
 
     public Optional<String> getEdifactMessageByPnrId(String id) {
-        return getOptionalPNRById(id).map(Utils::convertToEdifact);
+        return getOptionalPnrById(id).map(Utils::convertToEdifact);
     }
 }
