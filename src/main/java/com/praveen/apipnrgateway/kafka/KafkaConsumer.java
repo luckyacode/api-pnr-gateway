@@ -1,5 +1,6 @@
 package com.praveen.apipnrgateway.kafka;
 
+import com.praveen.apipnrgateway.entity.DlqTopic;
 import com.praveen.apipnrgateway.helper.Utils;
 import com.praveen.apipnrgateway.dto.CheckInRequest;
 import com.praveen.apipnrgateway.dto.DCSRequest;
@@ -14,6 +15,8 @@ import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
+
+import java.time.Instant;
 
 @Service
 @Slf4j
@@ -54,12 +57,18 @@ public class KafkaConsumer {
             @Header(KafkaHeaders.RECEIVED_TOPIC) String deadTopic,
             @Header(name = "X-Exception-Message", required = false) String errorMessage) {
 
-        log.error("🚨🛑 AIRPORT OPERATIONS ALARM:  processing permanently failed!");
+
+        log.error("🚨🛑 CRITICAL INTERCEPT: Appending message error signature to DB Triage Log table.");
+        log.error("-> Partition Key: {} | Failed Topic: {}", pnrId, deadTopic);
         log.error("-> Failed PNR Locator: {}", pnrId);
         log.error("-> Source Dead Topic : {}", deadTopic);
         log.error("-> Failure Reason    : {}", errorMessage);
         log.error("-> Failure Message    : {}", failedEvent);
 
+        DlqTopic dlqTopic = DlqTopic.builder().pnrId(pnrId!=null ? pnrId:"NO_PNR").
+                sourceTopic(deadTopic).deadLetterTopic(deadTopic).
+                reason(errorMessage).event(failedEvent).loggedAt(Instant.now()).resolved(Boolean.FALSE).build();
+        kafkaService.saveDlq(dlqTopic);
     }
 
 }

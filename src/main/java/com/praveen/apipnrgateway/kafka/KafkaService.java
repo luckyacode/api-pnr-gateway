@@ -1,6 +1,7 @@
 package com.praveen.apipnrgateway.kafka;
 
 
+import com.praveen.apipnrgateway.entity.DlqTopic;
 import com.praveen.apipnrgateway.helper.CommonMapper;
 import com.praveen.apipnrgateway.helper.Utils;
 import com.praveen.apipnrgateway.dto.CheckInRequest;
@@ -10,6 +11,7 @@ import com.praveen.apipnrgateway.dto.PnrRequest;
 import com.praveen.apipnrgateway.entity.CheckInResponse;
 import com.praveen.apipnrgateway.entity.PNR;
 import com.praveen.apipnrgateway.kafka.events.*;
+import com.praveen.apipnrgateway.repository.DlqTopicRepository;
 import com.praveen.apipnrgateway.service.DcsOperationsService;
 import com.praveen.apipnrgateway.service.GovernmentSimulatorService;
 import com.praveen.apipnrgateway.service.PnrService;
@@ -31,6 +33,7 @@ public class KafkaService {
     private final KafkaPublisher kafkaPublisher;
     private final DcsOperationsService dcsOperationsService;
     private final CommonMapper commonMapper;
+    private final DlqTopicRepository dlqTopicRepository;
 
     public void processPnrMessage(PnrEvent pnrEvent) {
         log.info("Executing local repository append for PNR Locator: {}", pnrEvent.pnrId());
@@ -66,5 +69,10 @@ public class KafkaService {
         log.info("Synchronizing Departure Control System processing logs for PNR: {}", dcsRequestEvent.getPnrId());
         dcsOperationsService.executeAirportCheckIn(dcsRequestEvent.getFlightId(), dcsRequestEvent.getPnrId(), dcsRequestEvent.getPassengerId(), dcsRequestEvent.getPassengerName());
         log.info("✓ DCS check-in operations fully recorded for PNR: {}", dcsRequestEvent.getPnrId());
+    }
+
+    public void saveDlq(DlqTopic dlqTopic) {
+        dlqTopicRepository.save(dlqTopic);
+        log.info("DLQ Message Record commited in database");
     }
 }
