@@ -4,6 +4,7 @@ import com.praveen.apipnrgateway.helper.Utils;
 import com.praveen.apipnrgateway.dto.CheckInRequest;
 import com.praveen.apipnrgateway.dto.DCSRequest;
 import com.praveen.apipnrgateway.dto.PnrRequest;
+import com.praveen.apipnrgateway.kafka.events.KafkaTopics;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -19,7 +20,7 @@ public class KafkaConsumer {
 
     private final KafkaService kafkaService;
 
-    @KafkaListener(topics = "pnr-topic", groupId = "group-id1")
+    @KafkaListener(topics = KafkaTopics.PNR_EVENTS, groupId = "group-id1")
     public void consumingPnrRequest(@Payload String request, @Header(value = KafkaHeaders.RECEIVED_KEY) String pnrId) {
         log.info("PnrRequest Message received with key {} and message : {}", pnrId, request);
         PnrRequest pnrRequest = Utils.jsonToObject(request, PnrRequest.class);
@@ -27,7 +28,7 @@ public class KafkaConsumer {
         kafkaService.processPNRMessage(pnrRequest);
     }
 
-    @KafkaListener(topics = "checkin-topic", groupId = "group-id2")
+    @KafkaListener(topics = KafkaTopics.CheckIn.REQUESTS, groupId = "group-id2")
     public void consumingCheckInRequest(@Payload String request, @Header(value = KafkaHeaders.RECEIVED_KEY) String pnrId) {
         log.info("CheckInRequest Message received with key {} and message : {}", pnrId, request);
         CheckInRequest checkInRequest = Utils.jsonToObject(request, CheckInRequest.class);
@@ -35,7 +36,7 @@ public class KafkaConsumer {
         kafkaService.processCheckInMessage(checkInRequest);
     }
 
-    @KafkaListener(topics = "dcs-topic", groupId = "group-id3")
+    @KafkaListener(topics = KafkaTopics.DCS_EVENTS, groupId = "group-id3")
     public void consumingDCSRequest(@Payload String request, @Header(value = KafkaHeaders.RECEIVED_KEY) String key) {
         log.info("DCSRequest Message received with key {} and message : {}", key, request);
         DCSRequest dcsRequest = Utils.jsonToObject(request, DCSRequest.class);
