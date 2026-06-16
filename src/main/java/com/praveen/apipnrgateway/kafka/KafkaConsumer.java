@@ -3,7 +3,7 @@ package com.praveen.apipnrgateway.kafka;
 import com.praveen.apipnrgateway.helper.Utils;
 import com.praveen.apipnrgateway.dto.CheckInRequest;
 import com.praveen.apipnrgateway.dto.DCSRequest;
-import com.praveen.apipnrgateway.dto.PNRRequest;
+import com.praveen.apipnrgateway.dto.PnrRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -20,9 +20,9 @@ public class KafkaConsumer {
     private final KafkaService kafkaService;
 
     @KafkaListener(topics = "pnr-topic", groupId = "group-id1")
-    public void consumingPNRRequest(@Payload String request, @Header(value = KafkaHeaders.RECEIVED_KEY) String pnrId) {
-        log.info("PNRRequest Message received with key {} and message : {}", pnrId, request);
-        PNRRequest pnrRequest = Utils.jsonToObject(request, PNRRequest.class);
+    public void consumingPnrRequest(@Payload String request, @Header(value = KafkaHeaders.RECEIVED_KEY) String pnrId) {
+        log.info("PnrRequest Message received with key {} and message : {}", pnrId, request);
+        PnrRequest pnrRequest = Utils.jsonToObject(request, PnrRequest.class);
         log.info("Successfully Message Received : {}", pnrRequest);
         kafkaService.processPNRMessage(pnrRequest);
     }

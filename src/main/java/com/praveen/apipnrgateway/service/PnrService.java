@@ -3,7 +3,7 @@ package com.praveen.apipnrgateway.service;
 import com.praveen.apipnrgateway.helper.AirlineException;
 import com.praveen.apipnrgateway.helper.CommonMapper;
 import com.praveen.apipnrgateway.helper.Utils;
-import com.praveen.apipnrgateway.dto.PNRRequest;
+import com.praveen.apipnrgateway.dto.PnrRequest;
 import com.praveen.apipnrgateway.entity.FlightManifest;
 import com.praveen.apipnrgateway.entity.PNR;
 import com.praveen.apipnrgateway.entity.Passenger;
@@ -38,7 +38,7 @@ public class PnrService {
         return pnrRepository.findAll();
     }
 
-    public PNR addPNR(PNRRequest pnrRequest) {
+    public PNR addPNR(PnrRequest pnrRequest) {
         PNR mappedPNR = commonMapper.toPNR(pnrRequest);
         FlightManifest flightManifest = flightRepository.findByFlightId(pnrRequest.getFlightId()).orElseThrow(() -> AirlineException.serverError("flight not scheduled..."));
         mappedPNR.setFlight(flightManifest);

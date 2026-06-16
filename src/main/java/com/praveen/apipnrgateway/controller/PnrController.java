@@ -26,7 +26,7 @@ public class PnrController {
     }
 
     @GetMapping("/{id}/edifact-message")
-    public ResponseEntity<ApiResponse<String>> getPNRMessageById(@PathVariable String id) {
+    public ResponseEntity<ApiResponse<String>> getPnrEditfactMessage(@PathVariable String id) {
         return pnrService.getEdifactMessageByPnrId(id).
                 map(pnr -> ApiResponse.ok(pnr, "EDIFACT Message Generated Successfully"))
                 .orElseGet(() -> ApiResponse.notFound("UN/EDIFACT generation failed: PNR Data with id " + id + " not found"));

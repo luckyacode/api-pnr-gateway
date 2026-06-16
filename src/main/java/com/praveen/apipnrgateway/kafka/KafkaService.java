@@ -5,7 +5,7 @@ import com.praveen.apipnrgateway.helper.Utils;
 import com.praveen.apipnrgateway.dto.CheckInRequest;
 import com.praveen.apipnrgateway.dto.DCSRequest;
 import com.praveen.apipnrgateway.dto.GovernmentClearanceResponse;
-import com.praveen.apipnrgateway.dto.PNRRequest;
+import com.praveen.apipnrgateway.dto.PnrRequest;
 import com.praveen.apipnrgateway.entity.CheckInResponse;
 import com.praveen.apipnrgateway.entity.PNR;
 import com.praveen.apipnrgateway.service.DcsOperationsService;
@@ -26,8 +26,8 @@ public class KafkaService {
     private final GovernmentSimulatorService governmentSimulatorService;
     private final KafkaPublisher kafkaPublisher;
     private final DcsOperationsService dcsOperationsService;
-    public void processPNRMessage(PNRRequest pnrRequest){
-        log.info("Processing PNR ...{}",pnrRequest.getPNRId());
+    public void processPNRMessage(PnrRequest pnrRequest){
+        log.info("Processing PNR ...{}",pnrRequest.getPnrId());
         pnrService.addPNR(pnrRequest);
     }
 
