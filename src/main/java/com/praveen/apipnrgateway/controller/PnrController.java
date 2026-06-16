@@ -37,4 +37,9 @@ public class PnrController {
        return ApiResponse.ok(pnrService.findAll(),"All PNR Data Fetched");
     }
 
+    @GetMapping("/by-status/{status}")
+    public ResponseEntity<ApiResponse<List<PNR>>> getAllByStatus(@PathVariable String status)  {
+       return ApiResponse.ok(pnrService.findAllByStatus(status),"PNR Data Fetched For Booking Status "+status);
+    }
+
 }

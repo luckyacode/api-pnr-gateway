@@ -38,6 +38,10 @@ public class PnrService {
         return pnrRepository.findAll();
     }
 
+    public List<PNR> findAllByStatus(String status){
+        return pnrRepository.findAllByBookingStatus(status);
+    }
+
     public PNR addPNR(PnrRequest pnrRequest) {
         PNR mappedPNR = commonMapper.toPNR(pnrRequest);
         FlightManifest flightManifest = flightRepository.findByFlightId(pnrRequest.getFlightId()).orElseThrow(() -> AirlineException.serverError("flight not scheduled..."));
