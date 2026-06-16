@@ -29,11 +29,13 @@ public class DcsGateService {
     private final DCSFlightManifestRepository dcsFlightManifestRepository;
 
     public Optional<DcsFlightManifest> getFlightManifest(String flightId) {
+        log.info("Looking for flight with ID : {}",flightId);
         return dcsFlightManifestRepository.findByFlightId(flightId);
     }
 
     @Transactional(readOnly = true)
     public List<GovernmentClearanceResponse> getBlockedPassengers(String flightId, AuthorityDirection authorityDirection) {
+        log.info("Searching for lookup blocked passengers");
         return dcsFlightManifestRepository.findDistinctByFlightId(flightId).stream()
                 .map(DcsFlightManifest::getPassengers)
                 .filter(Objects::nonNull)
@@ -48,6 +50,7 @@ public class DcsGateService {
 
     @Transactional // Critical for write operations in production
     public String processBoarding(String flightId, String passengerId) {
+        log.info("Processing started on booking for passenger : {}",passengerId);
         DcsPassengerManifest passenger = dcsPassengerManifestRepository.findByPassengerId(passengerId)
                 .orElseThrow(() -> new IllegalArgumentException("Passenger not found on this flight manifest."));
 

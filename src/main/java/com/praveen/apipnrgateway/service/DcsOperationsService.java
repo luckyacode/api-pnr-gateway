@@ -33,7 +33,7 @@ public class DcsOperationsService {
 
     @SneakyThrows
     @Transactional
-    public DcsPassengerManifest executeAirportCheckIn(String flightId, String pnrId, String passengerId, String passengerName)  {
+    public void executeAirportCheckIn(String flightId, String pnrId, String passengerId, String passengerName)  {
         log.info("DCS: Initiating airport desk check-in for Pax: {} on Flight: {}", passengerId, flightId);
 
         // 1. Fetch core static routing configuration data
@@ -49,19 +49,17 @@ public class DcsOperationsService {
                         .flightDate(flight.getDepartureDate().toString())
                         .scheduledDepartureDateTime(flight.getScheduledDepartureDateTime())
                         .scheduledArrivalDateTime(flight.getScheduledArrivalDateTime())
-//                        .totalCheckedBags(1)
-//                        .totalBaggageWeightKg(1.0)
                         .manifestHydratedAt(LocalDateTime.now())
                         .isManifestClosed(Boolean.FALSE)
                         .build());
 
         if(dcsFlightManifest.isManifestClosed()){
-            log.info("Sorry, Flight is already departured .....no new passenger allowed...");
-            throw AirlineException.serverError("Flight is already departured .");
-        }
+            log.warn("DCS REJECTION: Flight manifest is closed or departed for ID: {}. Operations terminated.", flightId);
+            throw AirlineException.serverError("Flight manifest is already closed or departed for ID: " + flightId);        }
 
-        Random r = new Random();
-        log.info("DCS: Fetching or creating passenger line-item manifest row securely.");
+        log.info("DCS: Evaluating manifest footprint records for Passenger ID: {}", passengerId);
+
+        boolean isNewPassenger = dcsPassengerManifestRepository.findByPassengerId(passengerId).isEmpty();
 
         // 🌟 FIXED: Passed passengerId first, flightId second to match your repository signature perfectly!
         DcsPassengerManifest dcsPassengerManifest = dcsPassengerManifestRepository
@@ -77,15 +75,13 @@ public class DcsOperationsService {
                         .lastUpdatedTime(LocalDateTime.now())
                         .build());
 
-        // 🌟 FIXED: Bidirectional binding tool strategy.
-        // Ensure the helper method flightManifest.addPassenger(passenger) is called,
-        // or set both sides explicitly right here before writing:
-        dcsFlightManifest.setTotalCheckedBags(dcsFlightManifest.getTotalCheckedBags()+dcsPassengerManifest.getBaggageCount());
-        dcsFlightManifest.setTotalBaggageWeightKg(dcsFlightManifest.getTotalBaggageWeightKg()+dcsPassengerManifest.getTotalBagWeight());
-        dcsPassengerManifest.setDcsManifest(dcsFlightManifest);
-        if (!dcsFlightManifest.getPassengers().contains(dcsPassengerManifest)) {
+        if (isNewPassenger) {
+            dcsFlightManifest.setTotalCheckedBags(dcsFlightManifest.getTotalCheckedBags() + dcsPassengerManifest.getBaggageCount());
+            dcsFlightManifest.setTotalBaggageWeightKg(dcsFlightManifest.getTotalBaggageWeightKg() + dcsPassengerManifest.getTotalBagWeight());
+            dcsPassengerManifest.setDcsManifest(dcsFlightManifest);
             dcsFlightManifest.getPassengers().add(dcsPassengerManifest);
         }
+
         try{
         // 3. Process Government APP Clearances from Database Snapshot Audit
         APP appClearanceResult = appRepository.findByGovernmentClearanceResponse_PassengerId(passengerId)
@@ -107,9 +103,8 @@ public class DcsOperationsService {
             throw AirlineException.serverError("REGULATORY LOCK: Boarding pass generation blocked by government authority.");
         }
 
-            if (AuthorityDirection.CHCK==directive) {
-                log.warn("DCS: Manual documentation check required at gate.");
-                // Still allow check-in, but flag it for manual review later
+            if (AuthorityDirection.CHCK == directive) {
+                log.warn("⚠️ DCS FLAG: Secondary document and visa inspection mandatory at gate for Passenger ID: {}", passengerId);                // Still allow check-in, but flag it for manual review later
             }
 
             // 4. Success Path: Government returned "OK", DCS updates state and assigns a seat
@@ -117,17 +112,18 @@ public class DcsOperationsService {
             dcsPassengerManifest.setSeatNumber(assignRandomSeat());
             dcsPassengerManifest.setLastUpdatedTime(LocalDateTime.now());
 
-            log.info("DCS: Check-in successful. Seat {} assigned to Pax: {}", dcsPassengerManifest.getSeatNumber(), passengerId);
+            log.info("✓ DCS: Check-in successful. Seat {} assigned to Pax: {}", dcsPassengerManifest.getSeatNumber(), passengerId);
             dcsFlightManifestRepository.save(dcsFlightManifest);
-            return dcsPassengerManifestRepository.save(dcsPassengerManifest);
+            dcsPassengerManifestRepository.save(dcsPassengerManifest);
 
-        } catch (SecurityException e) {
+        } catch (AirlineException e) {
             throw e; // Bubble up security denials cleanly to the UI layer
         } catch (Exception e) {
-            log.error("DCS: Internal fallback processing triggered due to system error: ", e);
+            log.error("💥 DCS ERROR: Unexpected operational fault occurred. Forcing safety lock for Passenger ID: {}", passengerId, e);
             dcsPassengerManifest.setDcsStatus(DcsStatus.BOARDING_LOCKED); // Safe fallback: lock if system fails
             dcsFlightManifestRepository.save(dcsFlightManifest);
-            return dcsPassengerManifestRepository.save(dcsPassengerManifest);
+            dcsPassengerManifestRepository.save(dcsPassengerManifest);
+            throw AirlineException.serverError("DCS Processing failure: " + e.getMessage());
         }
     }
 

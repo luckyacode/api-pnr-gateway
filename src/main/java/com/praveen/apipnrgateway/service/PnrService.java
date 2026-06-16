@@ -13,6 +13,7 @@ import com.praveen.apipnrgateway.repository.PnrRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -26,33 +27,42 @@ public class PnrService {
     private final PassengerRepository passengerRepository;
     private final FlightRepository flightRepository;
 
+    @Transactional(readOnly = true)
     public PNR getPnrById(String id) {
-        return getOptionalPnrById(id).orElseThrow(() -> AirlineException.notFound("PNR with " + id + " not found"));
+        log.debug("Searching PNR by record identifier: {}", id);
+        return getOptionalPnrById(id)
+                .orElseThrow(() -> AirlineException.notFound("PNR record locator '" + id + "' not found in system platform."));
     }
 
-    public Optional<PNR> getOptionalPnrById(String id)  {
+    @Transactional(readOnly = true)
+    public Optional<PNR> getOptionalPnrById(String id) {
         return pnrRepository.findByPnrId(id);
     }
 
+    @Transactional(readOnly = true)
     public List<PNR> findAll(){
         return pnrRepository.findAll();
     }
 
+
+    @Transactional(readOnly = true)
     public List<PNR> findAllByStatus(String status){
         return pnrRepository.findAllByBookingStatus(status);
     }
 
-    public PNR addPNR(PnrRequest pnrRequest) {
+
+    @Transactional(readOnly = true)
+    public void addPNR(PnrRequest pnrRequest) {
         PNR mappedPNR = commonMapper.toPNR(pnrRequest);
-        FlightManifest flightManifest = flightRepository.findByFlightId(pnrRequest.getFlightId()).orElseThrow(() -> AirlineException.serverError("flight not scheduled..."));
+        FlightManifest flightManifest = flightRepository.findByFlightId(pnrRequest.getFlightId()).orElseThrow(() -> AirlineException.serverError("flight not scheduled : "+pnrRequest.getFlightId()));
         mappedPNR.setFlight(flightManifest);
-        Passenger passenger = passengerRepository.findById(pnrRequest.getPassengerId()).orElseThrow(() -> AirlineException.serverError("passenger not found..."));
+        Passenger passenger = passengerRepository.findById(pnrRequest.getPassengerId()).orElseThrow(() -> AirlineException.notFound("Passenger with id "+pnrRequest.getPassengerId()+"not found"));
         mappedPNR.setPassenger(passenger);
         PNR pnr = pnrRepository.save(mappedPNR);
-        log.info("Saved PNR to db . {}", pnr);
-        return pnr;
+        log.info("PNR Record saved to db . {}", pnr);
     }
 
+    @Transactional(readOnly = true)
     public Optional<String> getEdifactMessageByPnrId(String id) {
         return getOptionalPnrById(id).map(Utils::convertToEdifact);
     }
