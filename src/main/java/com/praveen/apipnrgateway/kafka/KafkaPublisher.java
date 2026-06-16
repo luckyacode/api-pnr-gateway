@@ -33,16 +33,4 @@ public class KafkaPublisher {
         });
     }
 
-
-    public void sendCheckInResponseMessage(String clearanceId, String checkInResponseJson) {
-        CompletableFuture<SendResult<String, String>> result = kafkaTemplate.send(KafkaTopics.CheckIn.RESPONSES,clearanceId,checkInResponseJson);
-        result.whenComplete((((object, exception) -> {
-            if(exception==null)
-                log.info("Successfully published kafka message to  : checkin-response");
-            else {
-                log.error("failed to  published kafka message to  : checkin-response ",exception);
-            }
-        })));
-    }
-
 }

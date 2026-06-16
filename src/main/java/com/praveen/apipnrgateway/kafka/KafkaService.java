@@ -18,40 +18,53 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@Transactional
 public class KafkaService {
-    private final KafkaTemplate<String,String>  kafkaTemplate;
+    private final KafkaTemplate<String, String> kafkaTemplate;
     private final PnrService pnrService;
     private final GovernmentSimulatorService governmentSimulatorService;
     private final KafkaPublisher kafkaPublisher;
     private final DcsOperationsService dcsOperationsService;
     private final CommonMapper commonMapper;
 
-    public void processPnrMessage(PnrEvent pnrEvent){
-        log.info("Processing PNR ...{}",pnrEvent.pnrId());
+    public void processPnrMessage(PnrEvent pnrEvent) {
+        log.info("Executing local repository append for PNR Locator: {}", pnrEvent.pnrId());
         PnrRequest pnrRequest = commonMapper.toPnrRequest(pnrEvent);
         pnrService.addPNR(pnrRequest);
     }
 
-    @SneakyThrows
-    public void processCheckInMessage(CheckInEvent checkInEvent) {
-        log.info("Processing CheckIn ...{}",checkInEvent);
-        PNR pnr = pnrService.getPnrById(checkInEvent.pnrId());
-        CheckInRequest checkInRequest = commonMapper.toCheckInRequest(checkInEvent);
-        GovernmentClearanceResponse  governmentClearanceResponse = governmentSimulatorService.processClearance(checkInRequest,pnr);
-        CheckInResponseEvent checkInResponseEvent = CheckInResponseEvent.builder().
-                pnrId(checkInEvent.pnrId()).governmentClearanceResponse(governmentClearanceResponse).build();
 
-        String checkInResponseEventJson = Utils.objectToJson(checkInResponseEvent);
-        kafkaPublisher.sendKafkaEvent(KafkaTopics.CheckIn.RESPONSES,checkInEvent.pnrId(),checkInResponseEventJson);
+    public void processCheckInMessage(CheckInEvent checkInEvent) {
+        String pnrId = checkInEvent.pnrId();
+        log.info("Evaluating background border security clearance verification for PNR: {}", pnrId);
+
+        try {
+            PNR pnr = pnrService.getPnrById(pnrId);
+            CheckInRequest checkInRequest = commonMapper.toCheckInRequest(checkInEvent);
+
+            // External execution mapping phase
+            GovernmentClearanceResponse governmentClearanceResponse = governmentSimulatorService.processClearance(checkInRequest, pnr);
+
+            CheckInResponseEvent checkInResponseEvent = CheckInResponseEvent.builder().pnrId(pnrId).governmentClearanceResponse(governmentClearanceResponse).build();
+
+            log.info("Border clearance validation computed. Publishing results back to cluster topics...");
+
+            kafkaPublisher.sendKafkaEvent(KafkaTopics.CheckIn.RESPONSES, pnrId, Utils.objectToJson(checkInResponseEvent));
+
+        } catch (Exception ex) {
+            log.error("🚨 ORCHESTRATION PIPELINE BROKEN: Vetting processing failed for PNR {}. Core reason: {}", pnrId, ex.getMessage());
+        }
     }
 
+
     public void processDCSMessage(DCSRequestEvent dcsRequestEvent) {
-        log.info("Processing DCS Message : {}",dcsRequestEvent);
-        dcsOperationsService.executeAirportCheckIn(dcsRequestEvent.getFlightId(), dcsRequestEvent.getPnrId(), dcsRequestEvent.getPassengerId(),dcsRequestEvent.getPassengerName());
-        log.info("DCS Completed ... ");
+        log.info("Synchronizing Departure Control System processing logs for PNR: {}", dcsRequestEvent.getPnrId());
+        dcsOperationsService.executeAirportCheckIn(dcsRequestEvent.getFlightId(), dcsRequestEvent.getPnrId(), dcsRequestEvent.getPassengerId(), dcsRequestEvent.getPassengerName());
+        log.info("✓ DCS check-in operations fully recorded for PNR: {}", dcsRequestEvent.getPnrId());
     }
 }

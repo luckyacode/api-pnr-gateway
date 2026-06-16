@@ -25,23 +25,21 @@ public class KafkaConsumer {
 
     @KafkaListener(topics = KafkaTopics.PNR_EVENTS, groupId = "group-id1")
     public void consumingPnrRequest(@Payload String request, @Header(value = KafkaHeaders.RECEIVED_KEY) String pnrId) {
-        log.info("PnrRequest Message received with key {} and message : {}", pnrId, request);
+        log.info("✓ Received PnrEvent via Kafka Broker partition. PNR Key: {}, Action: {}", pnrId, request);
         PnrEvent pnrEvent = Utils.jsonToObject(request, PnrEvent.class);
-        log.info("Successfully Message Received : {}", pnrEvent);
         kafkaService.processPnrMessage(pnrEvent);
     }
 
     @KafkaListener(topics = KafkaTopics.CheckIn.REQUESTS, groupId = "group-id2")
     public void consumingCheckInRequest(@Payload String request, @Header(value = KafkaHeaders.RECEIVED_KEY) String pnrId) {
-        log.info("CheckInRequest Message received with key {} and message : {}", pnrId, request);
+        log.info("✓ Received CheckInEvent via Kafka Broker partition. PNR Key: {}, Action: {}", pnrId, request);
         CheckInEvent checkInEvent = Utils.jsonToObject(request, CheckInEvent.class);
-        log.info("Successfully Message Received : {}", checkInEvent);
         kafkaService.processCheckInMessage(checkInEvent);
     }
 
     @KafkaListener(topics = KafkaTopics.DCS_EVENTS, groupId = "group-id3")
-    public void consumingDCSRequest(@Payload String request, @Header(value = KafkaHeaders.RECEIVED_KEY) String key) {
-        log.info("DCSEvent Message received with key {} and message : {}", key, request);
+    public void consumingDCSRequest(@Payload String request, @Header(value = KafkaHeaders.RECEIVED_KEY) String pnrId) {
+        log.info("✓ Received DCSRequestEvent via Kafka Broker partition. PNR Key: {}, Action: {}", pnrId, request);
         DCSRequestEvent dcsRequestEvent = Utils.jsonToObject(request, DCSRequestEvent.class);
         log.info("Successfully Message Received : {}", dcsRequestEvent);
         kafkaService.processDCSMessage(dcsRequestEvent);
