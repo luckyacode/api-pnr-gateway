@@ -1,6 +1,7 @@
 package com.praveen.apipnrgateway.kafka;
 
 
+import com.praveen.apipnrgateway.helper.CommonMapper;
 import com.praveen.apipnrgateway.helper.Utils;
 import com.praveen.apipnrgateway.dto.CheckInRequest;
 import com.praveen.apipnrgateway.dto.DCSRequest;
@@ -8,8 +9,7 @@ import com.praveen.apipnrgateway.dto.GovernmentClearanceResponse;
 import com.praveen.apipnrgateway.dto.PnrRequest;
 import com.praveen.apipnrgateway.entity.CheckInResponse;
 import com.praveen.apipnrgateway.entity.PNR;
-import com.praveen.apipnrgateway.kafka.events.CheckInResponseEvent;
-import com.praveen.apipnrgateway.kafka.events.KafkaTopics;
+import com.praveen.apipnrgateway.kafka.events.*;
 import com.praveen.apipnrgateway.service.DcsOperationsService;
 import com.praveen.apipnrgateway.service.GovernmentSimulatorService;
 import com.praveen.apipnrgateway.service.PnrService;
@@ -28,31 +28,30 @@ public class KafkaService {
     private final GovernmentSimulatorService governmentSimulatorService;
     private final KafkaPublisher kafkaPublisher;
     private final DcsOperationsService dcsOperationsService;
+    private final CommonMapper commonMapper;
 
-    public void processPNRMessage(PnrRequest pnrRequest){
-        log.info("Processing PNR ...{}",pnrRequest.getPnrId());
+    public void processPnrMessage(PnrEvent pnrEvent){
+        log.info("Processing PNR ...{}",pnrEvent.pnrId());
+        PnrRequest pnrRequest = commonMapper.toPnrRequest(pnrEvent);
         pnrService.addPNR(pnrRequest);
     }
 
     @SneakyThrows
-    public void processCheckInMessage(CheckInRequest checkInRequest) {
-        log.info("Processing CheckIn ...{}",checkInRequest);
-        PNR pnr = pnrService.getPnrById(checkInRequest.getPnrId());
+    public void processCheckInMessage(CheckInEvent checkInEvent) {
+        log.info("Processing CheckIn ...{}",checkInEvent);
+        PNR pnr = pnrService.getPnrById(checkInEvent.pnrId());
+        CheckInRequest checkInRequest = commonMapper.toCheckInRequest(checkInEvent);
         GovernmentClearanceResponse  governmentClearanceResponse = governmentSimulatorService.processClearance(checkInRequest,pnr);
-//        CheckInResponse checkInResponse = CheckInResponse.builder().
-//                pnrId(checkInRequest.getPnrId()).
-//                governmentClearanceResponse(governmentClearanceResponse).build();
         CheckInResponseEvent checkInResponseEvent = CheckInResponseEvent.builder().
-                pnrId(checkInRequest.getPnrId()).governmentClearanceResponse(governmentClearanceResponse).build();
+                pnrId(checkInEvent.pnrId()).governmentClearanceResponse(governmentClearanceResponse).build();
 
         String checkInResponseEventJson = Utils.objectToJson(checkInResponseEvent);
-        kafkaPublisher.sendKafkaEvent(KafkaTopics.CheckIn.RESPONSES,checkInRequest.getPnrId(),checkInResponseEventJson);
-//        kafkaPublisher.sendCheckInResponseMessage(governmentClearanceResponse.getClearanceId(),checkInResponseEventJson);
+        kafkaPublisher.sendKafkaEvent(KafkaTopics.CheckIn.RESPONSES,checkInEvent.pnrId(),checkInResponseEventJson);
     }
 
-    public void processDCSMessage(DCSRequest dcsRequest) {
-        log.info("Processing DCS Message : {}",dcsRequest);
-        dcsOperationsService.executeAirportCheckIn(dcsRequest.getFlightId(), dcsRequest.getPnrId(), dcsRequest.getPassengerId(),dcsRequest.getPassengerName());
+    public void processDCSMessage(DCSRequestEvent dcsRequestEvent) {
+        log.info("Processing DCS Message : {}",dcsRequestEvent);
+        dcsOperationsService.executeAirportCheckIn(dcsRequestEvent.getFlightId(), dcsRequestEvent.getPnrId(), dcsRequestEvent.getPassengerId(),dcsRequestEvent.getPassengerName());
         log.info("DCS Completed ... ");
     }
 }
