@@ -8,6 +8,8 @@ import com.praveen.apipnrgateway.dto.GovernmentClearanceResponse;
 import com.praveen.apipnrgateway.dto.PnrRequest;
 import com.praveen.apipnrgateway.entity.CheckInResponse;
 import com.praveen.apipnrgateway.entity.PNR;
+import com.praveen.apipnrgateway.kafka.events.CheckInResponseEvent;
+import com.praveen.apipnrgateway.kafka.events.KafkaTopics;
 import com.praveen.apipnrgateway.service.DcsOperationsService;
 import com.praveen.apipnrgateway.service.GovernmentSimulatorService;
 import com.praveen.apipnrgateway.service.PnrService;
@@ -26,6 +28,7 @@ public class KafkaService {
     private final GovernmentSimulatorService governmentSimulatorService;
     private final KafkaPublisher kafkaPublisher;
     private final DcsOperationsService dcsOperationsService;
+
     public void processPNRMessage(PnrRequest pnrRequest){
         log.info("Processing PNR ...{}",pnrRequest.getPnrId());
         pnrService.addPNR(pnrRequest);
@@ -36,11 +39,15 @@ public class KafkaService {
         log.info("Processing CheckIn ...{}",checkInRequest);
         PNR pnr = pnrService.getPnrById(checkInRequest.getPnrId());
         GovernmentClearanceResponse  governmentClearanceResponse = governmentSimulatorService.processClearance(checkInRequest,pnr);
-        CheckInResponse checkInResponse = CheckInResponse.builder().
-                pnrId(checkInRequest.getPnrId()).
-                governmentClearanceResponse(governmentClearanceResponse).build();
-        String checkInResponseJson = Utils.objectToJson(checkInResponse);
-        kafkaPublisher.sendCheckInResponseMessage(governmentClearanceResponse.getClearanceId(),checkInResponseJson);
+//        CheckInResponse checkInResponse = CheckInResponse.builder().
+//                pnrId(checkInRequest.getPnrId()).
+//                governmentClearanceResponse(governmentClearanceResponse).build();
+        CheckInResponseEvent checkInResponseEvent = CheckInResponseEvent.builder().
+                pnrId(checkInRequest.getPnrId()).governmentClearanceResponse(governmentClearanceResponse).build();
+
+        String checkInResponseEventJson = Utils.objectToJson(checkInResponseEvent);
+        kafkaPublisher.sendKafkaEvent(KafkaTopics.CheckIn.RESPONSES,checkInRequest.getPnrId(),checkInResponseEventJson);
+//        kafkaPublisher.sendCheckInResponseMessage(governmentClearanceResponse.getClearanceId(),checkInResponseEventJson);
     }
 
     public void processDCSMessage(DCSRequest dcsRequest) {
