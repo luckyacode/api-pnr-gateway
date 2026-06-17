@@ -54,7 +54,6 @@ public class KafkaConsumer {
     }
 
     @DltHandler
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void handleDlt(
             @Payload String failedEvent,
             @Header(KafkaHeaders.RECEIVED_KEY) String pnrId,

@@ -20,6 +20,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -71,6 +72,7 @@ public class KafkaService {
         log.info("✓ DCS check-in operations fully recorded for PNR: {}", dcsRequestEvent.getPnrId());
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void saveDlq(DlqTopic dlqTopic) {
         dlqTopicRepository.save(dlqTopic);
         log.info("DLQ Message Record commited in database");
