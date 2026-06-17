@@ -22,34 +22,26 @@ spring:
   ###----Exactly One Delivery Semantics
   kafka:
     bootstrap-servers: ${kafka-host:localhost}:${kafka-port:9092}
-    template:
-      observation-enabled: true
-
-    # === CONSUMER CONFIGURATION ===
     consumer:
-      auto-offset-reset: earliest
-      enable-auto-commit: false
-      group-id: skyflying-eos-group # Make sure this is present
       isolation-level: read_committed
+      enable-auto-commit: false
+      #      auto-offset-reset: earliest
+      #      group-id: skyflying-eos-group # Make sure this is present
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-#      properties:
-#        spring.json.trusted.packages: "com.praveen.*"
-#        spring.json.value.default.type: "com.praveen.apipnrgateway.dto.PNRRequest"
 
-    # === PRODUCER CONFIGURATION ===
     producer:
       acks: all
-      # 👇 FIX 1 & 2: Renamed to standard Spring Boot format and fixed alignment
-      transaction-id: tx-invoice-
+      transaction-id: tx-dcs-booking-
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
 
-    # === LISTENER CONFIGURATION ===
-    listener:
-      ack-mode: RECORD
+    template:
       observation-enabled: true
-    #----Exactly One Delivery Semantics
+    listener:
+      ack-mode: MANUAL_IMMEDIATE
+      observation-enabled: true
+
 management:
   endpoints:
     web:

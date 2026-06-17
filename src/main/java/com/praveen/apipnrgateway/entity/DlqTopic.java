@@ -19,8 +19,11 @@ public class DlqTopic {
     private String pnrId;
     private String sourceTopic;
     private String deadLetterTopic;
+    @Lob
+    @Column(columnDefinition = "TEXT")
     private String reason;
     @Lob
+    @Column(columnDefinition = "TEXT")
     private String event;
     private Instant loggedAt;
     @Builder.Default
