@@ -4,22 +4,23 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
+
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @ToString
 @Data
-public class PNRRequest {
-    private String PNRId;
+public class PnrRequest {
+    private String pnrId;
     private LocalDateTime bookingDateTime;
     private String bookingStatus;
     private String flightId;
-    private int passengerId;
+    private Integer passengerId;
     private TicketStatus ticketStatus;
     private Channel bookingChannel;
     private BookingClass bookingClass;
     private String agencyId;
     private String transactionId;
-    private double totalAmount;
+    private Double totalAmount;
     private String currency;
 }

@@ -1,5 +1,7 @@
 package com.praveen.apipnrgateway.kafka;
 
+import com.praveen.apipnrgateway.helper.Utils;
+import com.praveen.apipnrgateway.kafka.events.KafkaTopics;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -14,15 +16,21 @@ import java.util.concurrent.CompletableFuture;
 public class KafkaPublisher {
     private final KafkaTemplate<String,String> kafkaTemplate;
 
-    public void sendCheckInResponseMessage(String clearanceId, String checkInResponseJson) {
-        CompletableFuture<SendResult<String, String>> result = kafkaTemplate.send("checkin-response",clearanceId,checkInResponseJson);
-        result.whenComplete((((object, exception) -> {
-            if(exception==null)
-                log.info("Successfully published kafka message to  : checkin-response");
-            else {
-                log.error("failed to  published kafka message to  : checkin-response ",exception);
+
+    public void sendKafkaEvent(String topic, String pnrId, String eventPayload) {
+        if (pnrId == null || pnrId.isBlank()) {
+            log.error("💥 SYSTEM BLOCK: Attempted to publish event to topic [{}] without a valid PNR key! Payload aborted to prevent out-of-order state corruption.", topic);
+            throw new IllegalArgumentException("Kafka partition routing key (pnrId) cannot be null or empty for stateful changes.");
+        }
+
+        log.debug("Routing stateful event to topic [{}] pinned to partition key [PNR: {}]", topic, pnrId);
+        kafkaTemplate.send(topic, pnrId, eventPayload).whenComplete((result, ex) -> {
+            if (ex != null) {
+                log.error("🚨 KAFKA BROKER FAILURE: PNR [{}] transaction failed to append. Error: {}", pnrId, ex.getMessage());
+            } else {
+                log.info("✓ Event committed on topic {} to partition {} at offset {} for PNR: {}", topic, result.getRecordMetadata().partition(), result.getRecordMetadata().offset(), pnrId);
             }
-        })));
+        });
     }
 
 }

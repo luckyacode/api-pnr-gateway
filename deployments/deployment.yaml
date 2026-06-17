@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: pnr-gateway-container
-          image: pnr-gateway:2     # Docker image registry/name and immutable version tag
+          image: pnr-gateway:5.1     # Docker image registry/name and immutable version tag
           # 1. BULK ENVIRONMENT VARIABLES (App Configurations)
           envFrom:
             - configMapRef:

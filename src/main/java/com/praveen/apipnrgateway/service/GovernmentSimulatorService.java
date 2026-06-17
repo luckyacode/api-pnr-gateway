@@ -5,14 +5,19 @@ import com.praveen.apipnrgateway.dto.AuthorityDirection;
 import com.praveen.apipnrgateway.dto.CheckInRequest;
 import com.praveen.apipnrgateway.dto.GovernmentClearanceResponse;
 import com.praveen.apipnrgateway.entity.PNR;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
+@Slf4j
 public class GovernmentSimulatorService {
 
     public GovernmentClearanceResponse processClearance(CheckInRequest checkInRequest,PNR request) {
+        log.info("Government simulator intercepting clearance request for PNR: {}", request.getPnrId());
         String passengerId = String.valueOf(request.getPassenger().getId());
 
         // Default Status: Passenger is clear to fly

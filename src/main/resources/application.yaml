@@ -15,35 +15,33 @@ spring:
     driver-class-name: org.postgresql.Driver
     username: ${postgres-user:root}
     password: ${postgres-password:pnr_db}
+    # Cap individual pods so they don't hoard connections
+    hikari:
+      maximum-pool-size=4:
 
   ###----Exactly One Delivery Semantics
   kafka:
     bootstrap-servers: ${kafka-host:localhost}:${kafka-port:9092}
-
-    # === CONSUMER CONFIGURATION ===
     consumer:
-      auto-offset-reset: earliest
-      enable-auto-commit: false
-      group-id: skyflying-eos-group # Make sure this is present
       isolation-level: read_committed
+      enable-auto-commit: false
+      #      auto-offset-reset: earliest
+      #      group-id: skyflying-eos-group # Make sure this is present
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-#      properties:
-#        spring.json.trusted.packages: "com.praveen.*"
-#        spring.json.value.default.type: "com.praveen.apipnrgateway.dto.PNRRequest"
 
-    # === PRODUCER CONFIGURATION ===
     producer:
       acks: all
-      # 👇 FIX 1 & 2: Renamed to standard Spring Boot format and fixed alignment
-      transaction-id: tx-invoice-
+      transaction-id: tx-dcs-booking-
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
 
-    # === LISTENER CONFIGURATION ===
+    template:
+      observation-enabled: true
     listener:
-      ack-mode: RECORD
-    #----Exactly One Delivery Semantics
+      ack-mode: MANUAL_IMMEDIATE
+      observation-enabled: true
+
 management:
   endpoints:
     web:
@@ -58,3 +56,6 @@ management:
       application: api-pnr-gateway
 server:
   port: ${SERVER_PORT:8087}
+logging:
+  pattern:
+    correlation: "[%X{traceId:-},%X{spanId:-}]"
