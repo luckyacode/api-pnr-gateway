@@ -14,10 +14,10 @@ import java.util.concurrent.CompletableFuture;
 @RequiredArgsConstructor
 @Slf4j
 public class KafkaPublisher {
-    private final KafkaTemplate<String,String> kafkaTemplate;
+    private final KafkaTemplate<String,Object> kafkaTemplate;
 
 
-    public void sendKafkaEvent(String topic, String pnrId, String eventPayload) {
+    public void sendKafkaEvent(String topic, String pnrId, Object eventPayload) {
         if (pnrId == null || pnrId.isBlank()) {
             log.error("💥 SYSTEM BLOCK: Attempted to publish event to topic [{}] without a valid PNR key! Payload aborted to prevent out-of-order state corruption.", topic);
             throw new IllegalArgumentException("Kafka partition routing key (pnrId) cannot be null or empty for stateful changes.");

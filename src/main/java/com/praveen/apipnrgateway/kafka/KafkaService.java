@@ -57,8 +57,7 @@ public class KafkaService {
             CheckInResponseEvent checkInResponseEvent = CheckInResponseEvent.builder().pnrId(pnrId).governmentClearanceResponse(governmentClearanceResponse).build();
 
             log.info("Border clearance validation computed. Publishing results back to cluster topics...");
-
-            kafkaPublisher.sendKafkaEvent(KafkaTopics.CheckIn.RESPONSES, pnrId, Utils.objectToJson(checkInResponseEvent));
+            kafkaPublisher.sendKafkaEvent(KafkaTopics.CheckIn.RESPONSES, pnrId, commonMapper.toAvro(checkInResponseEvent));
 
         } catch (Exception ex) {
             log.error("🚨 ORCHESTRATION PIPELINE BROKEN: Vetting processing failed for PNR {}. Core reason: {}", pnrId, ex.getMessage());
@@ -68,7 +67,7 @@ public class KafkaService {
 
     public void processDCSMessage(DCSRequestEvent dcsRequestEvent) {
         log.info("Synchronizing Departure Control System processing logs for PNR: {}", dcsRequestEvent.getPnrId());
-        dcsOperationsService.executeAirportCheckIn(dcsRequestEvent.getFlightId(), dcsRequestEvent.getPnrId(), dcsRequestEvent.getPassengerId(), dcsRequestEvent.getPassengerName());
+//        dcsOperationsService.executeAirportCheckIn(dcsRequestEvent.getFlightId(), dcsRequestEvent.getPnrId(), dcsRequestEvent.getPassengerId(), dcsRequestEvent.getPassengerName());
         log.info("✓ DCS check-in operations fully recorded for PNR: {}", dcsRequestEvent.getPnrId());
     }
 

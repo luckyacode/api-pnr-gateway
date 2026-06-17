@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/dcs/gates") // Clean plural resource
+@RequestMapping("/api/v1/dcs-request-event.avsc/gates") // Clean plural resource
 @RequiredArgsConstructor
 @Slf4j
 public class DcsGateController {
@@ -23,7 +23,7 @@ public class DcsGateController {
 
     /**
      * Fetch flight manifest metadata.
-     * Path: GET /api/v1/dcs/gates/flight-manifest/SQ22
+     * Path: GET /api/v1/dcs-request-event.avsc/gates/flight-manifest/SQ22
      */
     @GetMapping("/flight-manifest/{flightId}")
     public ResponseEntity<ApiResponse<DcsFlightManifest>> searchFlightManifest(@PathVariable String flightId) {
@@ -34,7 +34,7 @@ public class DcsGateController {
 
     /**
      * Fetch all passengers with a specific regulatory/authority block.
-     * Path: GET /api/v1/dcs/gates/flight-manifest/SQ22/blocked-passengers?direction=DENY_BOARDING
+     * Path: GET /api/v1/dcs-request-event.avsc/gates/flight-manifest/SQ22/blocked-passengers?direction=DENY_BOARDING
      */
     @GetMapping("/flight-manifest/{flightId}/blocked-passengers")
     public ResponseEntity<ApiResponse<List<GovernmentClearanceResponse>>> fetchAllBlockedPassengerInFlight(
@@ -47,7 +47,7 @@ public class DcsGateController {
 
     /**
      * Scan a boarding pass and clear the gate lock.
-     * Path: POST /api/v1/dcs/gates/scan-boarding-pass
+     * Path: POST /api/v1/dcs-request-event.avsc/gates/scan-boarding-pass
      */
     @PostMapping("/scan-boarding-pass")
     public ResponseEntity<ApiResponse<String>> scanAndBoard(@RequestBody BoardingScanRequest request) {

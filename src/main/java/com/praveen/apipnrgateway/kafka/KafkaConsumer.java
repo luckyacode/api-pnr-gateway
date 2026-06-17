@@ -1,7 +1,11 @@
 package com.praveen.apipnrgateway.kafka;
 
+import com.praveen.airline.avro.AvroCheckInRequest;
+import com.praveen.airline.avro.AvroDcsRequest;
+import com.praveen.airline.avro.AvroPnrEvent;
 import com.praveen.apipnrgateway.entity.DlqTopic;
 import com.praveen.apipnrgateway.helper.AirlineException;
+import com.praveen.apipnrgateway.helper.CommonMapper;
 import com.praveen.apipnrgateway.helper.Utils;
 import com.praveen.apipnrgateway.dto.CheckInRequest;
 import com.praveen.apipnrgateway.dto.DCSRequest;
@@ -28,13 +32,14 @@ import java.time.Instant;
 public class KafkaConsumer {
 
     private final KafkaService kafkaService;
+    private final CommonMapper mapper;
 
     @RetryableTopic(attempts = "3",traversingCauses = "true",exclude = {AirlineException.class})
     @KafkaListener(topics = KafkaTopics.PNR_EVENTS, groupId = KafkaGroups.PNR_PROCESSOR_GROUP)
-    public void consumingPnrRequest(@Payload String request, @Header(value = KafkaHeaders.RECEIVED_KEY) String pnrId, Acknowledgment ack) {
+    public void consumingPnrRequest(@Payload AvroPnrEvent request, @Header(value = KafkaHeaders.RECEIVED_KEY) String pnrId, Acknowledgment ack) {
         log.info("✓ Received PnrEvent via Kafka Broker partition. PNR Key: {}, Action: {}", pnrId, request);
         try {
-            PnrEvent pnrEvent = Utils.jsonToObject(request, PnrEvent.class);
+             PnrEvent pnrEvent = mapper.toPnrEvent(request);
             kafkaService.processPnrMessage(pnrEvent);
             ack.acknowledge();
         } catch (AirlineException ex) {
@@ -45,11 +50,12 @@ public class KafkaConsumer {
 
     @RetryableTopic(attempts = "3",traversingCauses = "true",exclude = {AirlineException.class})
     @KafkaListener(topics = KafkaTopics.CheckIn.REQUESTS, groupId = KafkaGroups.DCS_VALIDATION_GROUP)
-    public void consumingCheckInRequest(@Payload String request, @Header(value = KafkaHeaders.RECEIVED_KEY) String pnrId,Acknowledgment ack) {
+    public void consumingCheckInRequest(@Payload AvroCheckInRequest request, @Header(value = KafkaHeaders.RECEIVED_KEY) String pnrId, Acknowledgment ack) {
         log.info("✓ Received CheckInEvent via Kafka Broker partition. PNR Key: {}, Action: {}", pnrId, request);
         try {
-            CheckInEvent checkInEvent = Utils.jsonToObject(request, CheckInEvent.class);
+            CheckInEvent checkInEvent = mapper.toCheckInEvent(request);
             kafkaService.processCheckInMessage(checkInEvent);
+            log.info("check in request consume {}",request);
             ack.acknowledge();
         } catch (AirlineException ex) {
             log.warn("⚠️ Business rule violation for PNR {}. Skipping retries. Reason: {}", pnrId, ex.getMessage());
@@ -60,12 +66,13 @@ public class KafkaConsumer {
 
     @RetryableTopic(attempts = "3",traversingCauses = "true",exclude = {AirlineException.class})
     @KafkaListener(topics = KafkaTopics.DCS_EVENTS, groupId = KafkaGroups.DCS_PROCESSOR_GROUP)
-    public void consumingDCSRequest(@Payload String request, @Header(value = KafkaHeaders.RECEIVED_KEY) String pnrId,Acknowledgment ack) {
+    public void consumingDCSRequest(@Payload AvroDcsRequest request, @Header(value = KafkaHeaders.RECEIVED_KEY) String pnrId, Acknowledgment ack) {
         log.info("✓ Received DCSRequestEvent via Kafka Broker partition. PNR Key: {}, Action: {}", pnrId, request);
         try{
-            DCSRequestEvent dcsRequestEvent = Utils.jsonToObject(request, DCSRequestEvent.class);
+            DCSRequestEvent dcsRequestEvent = mapper.toDcsRequest(request);
             log.info("Successfully Message Received : {}", dcsRequestEvent);
             kafkaService.processDCSMessage(dcsRequestEvent);
+            log.info("request : {}",request);
             ack.acknowledge();
         } catch (AirlineException ex){
             log.warn("⚠️ Business rule violation for PNR {}. Skipping retries. Reason: {}", pnrId, ex.getMessage());
@@ -75,7 +82,7 @@ public class KafkaConsumer {
 
     @DltHandler
     public void handleDlt(
-            @Payload String failedEvent,
+            @Payload Object failedEvent,
             @Header(KafkaHeaders.RECEIVED_KEY) String pnrId,
             @Header(KafkaHeaders.RECEIVED_TOPIC) String deadTopic,
             @Header(KafkaHeaders.EXCEPTION_MESSAGE) String errorMessage) {
@@ -105,7 +112,7 @@ public class KafkaConsumer {
                     .sourceTopic(deadTopic)
                     .deadLetterTopic(deadTopic)
                     .reason(finalReason)
-                    .event(failedEvent)
+//                    .event(failedEvent)
                     .loggedAt(Instant.now())
                     .resolved(Boolean.FALSE)
                     .build();

@@ -1,0 +1,40 @@
+{
+  "type": "record",
+  "name": "AvroCheckInResponse",
+  "namespace": "com.praveen.airline.avro",
+  "doc": "Root schema monitoring clearance status for passenger check-in events.",
+  "fields": [
+    {
+      "name": "pnrId",
+      "type": "string",
+      "doc": "Alphanumeric 6-character unique reservation pointer locator."
+    },
+    {
+      "name": "governmentClearanceResponse",
+      "doc": "The embedded structural data detailing the regulatory screening response status.",
+      "type": {
+        "type": "record",
+        "name": "AvroGovernmentClearanceResponse",
+        "doc": "Inner schema representing clearance verification details.",
+        "fields": [
+          {
+            "name": "clearanceId",
+            "type": "string",
+            "doc": "Unique vetting transaction trace index issued by customs."
+          },
+          {
+            "name": "status",
+            "type": "string",
+            "doc": "The core result state indicator (e.g., APPROVED, DENIED, HOLD)."
+          },
+          {
+            "name": "remarks",
+            "doc": "Dynamic operational comments added by security dispatchers.",
+            "type": ["null", "string"],
+            "default": null
+          }
+        ]
+      }
+    }
+  ]
+}

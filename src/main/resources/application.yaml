@@ -22,20 +22,24 @@ spring:
   ###----Exactly One Delivery Semantics
   kafka:
     bootstrap-servers: ${kafka-host:localhost}:${kafka-port:9092}
+
     consumer:
       isolation-level: read_committed
       enable-auto-commit: false
       #      auto-offset-reset: earliest
       #      group-id: skyflying-eos-group # Make sure this is present
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-
+      value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
+      properties:
+        schema.registry.url: http://localhost:9081
+        specific.avro.reader: true
     producer:
       acks: all
-      transaction-id: tx-dcs-booking-
+      transaction-id: tx-dcs-request-event.avsc-booking-
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.apache.kafka.common.serialization.StringSerializer
-
+      value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
+      properties:
+        schema.registry.url: http://localhost:9081
     template:
       observation-enabled: true
     listener:

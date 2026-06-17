@@ -1,0 +1,28 @@
+{
+  "type": "record",
+  "name": "AvroDcsRequest",
+  "namespace": "com.praveen.airline.avro",
+  "doc": "Schema definition tracking outbound departure control gate manifest synchronization blocks.",
+  "fields": [
+    {
+      "name": "flightId",
+      "type": "string",
+      "doc": "The unique schedule airline flight deployment tracker code."
+    },
+    {
+      "name": "pnrId",
+      "type": "string",
+      "doc": "Primary 6-character alphanumeric database index reference locator key."
+    },
+    {
+      "name": "passengerId",
+      "type": "string",
+      "doc": "Relational passenger index row sequence token string."
+    },
+    {
+      "name": "passengerName",
+      "type": "string",
+      "doc": "Full legal matching name printed on the physical passport record."
+    }
+  ]
+}
