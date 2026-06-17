@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.DltHandler;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.annotation.RetryableTopic;
+import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -30,27 +31,46 @@ public class KafkaConsumer {
 
     @RetryableTopic(attempts = "3",traversingCauses = "true",exclude = {AirlineException.class})
     @KafkaListener(topics = KafkaTopics.PNR_EVENTS, groupId = KafkaGroups.PNR_PROCESSOR_GROUP)
-    public void consumingPnrRequest(@Payload String request, @Header(value = KafkaHeaders.RECEIVED_KEY) String pnrId) {
+    public void consumingPnrRequest(@Payload String request, @Header(value = KafkaHeaders.RECEIVED_KEY) String pnrId, Acknowledgment ack) {
         log.info("✓ Received PnrEvent via Kafka Broker partition. PNR Key: {}, Action: {}", pnrId, request);
-        PnrEvent pnrEvent = Utils.jsonToObject(request, PnrEvent.class);
-        kafkaService.processPnrMessage(pnrEvent);
+        try {
+            PnrEvent pnrEvent = Utils.jsonToObject(request, PnrEvent.class);
+            kafkaService.processPnrMessage(pnrEvent);
+            ack.acknowledge();
+        } catch (AirlineException ex) {
+            log.warn("⚠️ Business rule violation for PNR {}. Skipping retries. Reason: {}", pnrId, ex.getMessage());
+            ack.acknowledge();
+        }
     }
 
     @RetryableTopic(attempts = "3",traversingCauses = "true",exclude = {AirlineException.class})
     @KafkaListener(topics = KafkaTopics.CheckIn.REQUESTS, groupId = KafkaGroups.DCS_VALIDATION_GROUP)
-    public void consumingCheckInRequest(@Payload String request, @Header(value = KafkaHeaders.RECEIVED_KEY) String pnrId) {
+    public void consumingCheckInRequest(@Payload String request, @Header(value = KafkaHeaders.RECEIVED_KEY) String pnrId,Acknowledgment ack) {
         log.info("✓ Received CheckInEvent via Kafka Broker partition. PNR Key: {}, Action: {}", pnrId, request);
-        CheckInEvent checkInEvent = Utils.jsonToObject(request, CheckInEvent.class);
-        kafkaService.processCheckInMessage(checkInEvent);
-    }
+        try {
+            CheckInEvent checkInEvent = Utils.jsonToObject(request, CheckInEvent.class);
+            kafkaService.processCheckInMessage(checkInEvent);
+            ack.acknowledge();
+        } catch (AirlineException ex) {
+            log.warn("⚠️ Business rule violation for PNR {}. Skipping retries. Reason: {}", pnrId, ex.getMessage());
+            ack.acknowledge();
+        }
+
+}
 
     @RetryableTopic(attempts = "3",traversingCauses = "true",exclude = {AirlineException.class})
     @KafkaListener(topics = KafkaTopics.DCS_EVENTS, groupId = KafkaGroups.DCS_PROCESSOR_GROUP)
-    public void consumingDCSRequest(@Payload String request, @Header(value = KafkaHeaders.RECEIVED_KEY) String pnrId) {
+    public void consumingDCSRequest(@Payload String request, @Header(value = KafkaHeaders.RECEIVED_KEY) String pnrId,Acknowledgment ack) {
         log.info("✓ Received DCSRequestEvent via Kafka Broker partition. PNR Key: {}, Action: {}", pnrId, request);
-        DCSRequestEvent dcsRequestEvent = Utils.jsonToObject(request, DCSRequestEvent.class);
-        log.info("Successfully Message Received : {}", dcsRequestEvent);
-        kafkaService.processDCSMessage(dcsRequestEvent);
+        try{
+            DCSRequestEvent dcsRequestEvent = Utils.jsonToObject(request, DCSRequestEvent.class);
+            log.info("Successfully Message Received : {}", dcsRequestEvent);
+            kafkaService.processDCSMessage(dcsRequestEvent);
+            ack.acknowledge();
+        } catch (AirlineException ex){
+            log.warn("⚠️ Business rule violation for PNR {}. Skipping retries. Reason: {}", pnrId, ex.getMessage());
+            ack.acknowledge();
+        }
     }
 
     @DltHandler
