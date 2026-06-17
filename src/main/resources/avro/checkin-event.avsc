@@ -17,28 +17,32 @@
     {
       "name": "documentDetails",
       "doc": "Embedded object detailing the passenger identity documentation used for check-in.",
-      "type": {
-        "type": "record",
-        "name": "AvroDocumentDetails",
-        "doc": "Inner layout tracking verification documentation properties.",
-        "fields": [
-          {
-            "name": "documentType",
-            "type": "string",
-            "doc": "Type of credential presented (e.g., PASSPORT, NATIONAL_ID, VISA)."
-          },
-          {
-            "name": "documentNumber",
-            "type": "string",
-            "doc": "Unique identifier sequence printed on the document."
-          },
-          {
-            "name": "issuingCountry",
-            "type": "string",
-            "doc": "ISO country code indicating the authority that distributed the credential."
-          }
-        ]
-      }
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "AvroDocumentDetails",
+          "doc": "Inner layout tracking verification documentation properties.",
+          "fields": [
+            {
+              "name": "documentType",
+              "type": "string",
+              "doc": "Type of credential presented (e.g., PASSPORT, NATIONAL_ID, VISA)."
+            },
+            {
+              "name": "documentNumber",
+              "type": ["null","string"],
+              "default": null,
+              "doc": "Unique identifier sequence printed on the document."
+            },
+            {
+              "name": "issuingCountry",
+              "type": "string",
+              "doc": "ISO country code indicating the authority that distributed the credential."
+            }
+          ]
+        }
+      ]
     }
   ]
 }

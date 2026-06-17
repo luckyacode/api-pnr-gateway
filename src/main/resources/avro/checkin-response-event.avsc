@@ -15,23 +15,42 @@
       "type": {
         "type": "record",
         "name": "AvroGovernmentClearanceResponse",
-        "doc": "Inner schema representing clearance verification details.",
+        "namespace": "com.praveen.shared.avro",
+        "doc": "Schema definition mapping regulatory and customs clearance transaction responses.",
         "fields": [
           {
             "name": "clearanceId",
             "type": "string",
-            "doc": "Unique vetting transaction trace index issued by customs."
+            "doc": "Unique tracking token index issued by customs."
           },
           {
-            "name": "status",
+            "name": "passengerId",
             "type": "string",
-            "doc": "The core result state indicator (e.g., APPROVED, DENIED, HOLD)."
+            "doc": "Relational passenger index row sequence token string."
           },
           {
-            "name": "remarks",
-            "doc": "Dynamic operational comments added by security dispatchers.",
-            "type": ["null", "string"],
-            "default": null
+            "name": "authorityDirective",
+            "type": "string",
+            "doc": "Vetting direction payload string. Expected: OK (Clear), DNL (Do Not Board), CHCK (Manual Check)."
+          },
+          {
+            "name": "responseCode",
+            "type": "string",
+            "doc": "System operational reason code (e.g., '00'=Approved, '91'=No Visa)."
+          },
+          {
+            "name": "denialReason",
+            "type": [
+              "null",
+              "string"
+            ],
+            "default": null,
+            "doc": "Human-readable context message populated only if the transaction direction is rejected."
+          },
+          {
+            "name": "evaluatedAt",
+            "type": "string",
+            "doc": "ISO-8601 string representation of the execution timeline."
           }
         ]
       }
