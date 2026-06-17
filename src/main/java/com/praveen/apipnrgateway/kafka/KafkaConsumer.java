@@ -1,7 +1,7 @@
 package com.praveen.apipnrgateway.kafka;
 
 import com.praveen.airline.avro.AvroCheckInRequest;
-import com.praveen.airline.avro.AvroDcsRequest;
+import com.praveen.airline.avro.AvroDcsRequestEvent;
 import com.praveen.airline.avro.AvroPnrEvent;
 import com.praveen.apipnrgateway.entity.DlqTopic;
 import com.praveen.apipnrgateway.helper.AirlineException;
@@ -66,7 +66,7 @@ public class KafkaConsumer {
 
     @RetryableTopic(attempts = "3",traversingCauses = "true",exclude = {AirlineException.class})
     @KafkaListener(topics = KafkaTopics.DCS_EVENTS, groupId = KafkaGroups.DCS_PROCESSOR_GROUP)
-    public void consumingDCSRequest(@Payload AvroDcsRequest request, @Header(value = KafkaHeaders.RECEIVED_KEY) String pnrId, Acknowledgment ack) {
+    public void consumingDCSRequest(@Payload AvroDcsRequestEvent request, @Header(value = KafkaHeaders.RECEIVED_KEY) String pnrId, Acknowledgment ack) {
         log.info("✓ Received DCSRequestEvent via Kafka Broker partition. PNR Key: {}, Action: {}", pnrId, request);
         try{
             DCSRequestEvent dcsRequestEvent = mapper.toDcsRequest(request);

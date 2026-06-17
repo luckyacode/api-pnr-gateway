@@ -31,6 +31,8 @@ spring:
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
       properties:
+        spring.deserializer.key.delegate: org.apache.kafka.common.serialization.StringDeserializer
+        spring.deserializer.value.delegate: io.confluent.kafka.serializers.KafkaAvroDeserializer
         schema.registry.url: http://localhost:9081
         specific.avro.reader: true
     producer:

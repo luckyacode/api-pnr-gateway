@@ -2,7 +2,7 @@ package com.praveen.apipnrgateway.helper;
 
 import com.praveen.airline.avro.AvroCheckInRequest;
 import com.praveen.airline.avro.AvroCheckInResponse;
-import com.praveen.airline.avro.AvroDcsRequest;
+import com.praveen.airline.avro.AvroDcsRequestEvent;
 import com.praveen.airline.avro.AvroPnrEvent;
 import com.praveen.apipnrgateway.dto.CheckInRequest;
 import com.praveen.apipnrgateway.dto.PnrRequest;
@@ -32,7 +32,7 @@ public interface CommonMapper {
 
     CheckInEvent toCheckInEvent(AvroCheckInRequest request);
 
-    DCSRequestEvent toDcsRequest(AvroDcsRequest request);
+    DCSRequestEvent toDcsRequest(AvroDcsRequestEvent request);
 
     default LocalDateTime map(Instant instant) {
         if (instant == null) {
