@@ -67,7 +67,7 @@ public class KafkaService {
 
     public void processDCSMessage(DCSRequestEvent dcsRequestEvent) {
         log.info("Synchronizing Departure Control System processing logs for PNR: {}", dcsRequestEvent.getPnrId());
-//        dcsOperationsService.executeAirportCheckIn(dcsRequestEvent.getFlightId(), dcsRequestEvent.getPnrId(), dcsRequestEvent.getPassengerId(), dcsRequestEvent.getPassengerName());
+        dcsOperationsService.executeAirportCheckIn(dcsRequestEvent.getFlightId(), dcsRequestEvent.getPnrId(), dcsRequestEvent.getPassengerId(), dcsRequestEvent.getPassengerName());
         log.info("✓ DCS check-in operations fully recorded for PNR: {}", dcsRequestEvent.getPnrId());
     }
 
