@@ -1,0 +1,22 @@
+spring:
+  config:
+    activate:
+      on-profile: docker
+
+  # --- POSTGRES INTERNAL CONTAINER ROUTING ---
+  datasource:
+    url: jdbc:postgresql://postgres-service:5432/pnr_db
+    username: root
+    password: pnr_db
+    hikari:
+      maximum-pool-size: 4
+
+  # --- KAFKA INTERNAL CONTAINER ROUTING ---
+  kafka:
+    bootstrap-servers: kafka-service:29092
+    consumer:
+      properties:
+        schema.registry.url: http://schema-registry:9081
+    producer:
+      properties:
+        schema.registry.url: http://schema-registry:9081
