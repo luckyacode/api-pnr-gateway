@@ -1,0 +1,134 @@
+name: Spring Boot CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "devonly" ]
+  pull_request:
+    branches: [ "devonly" ]
+
+# 🌟 CRITICAL: Grant permissions required to push images to GitHub Packages (GHCR)
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  # --- STAGE 1: TEST, VERIFY & QUALITY SCAN ---
+  test-and-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Cache SonarCloud packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: Run Tests and Sonar Analysis
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          mvn clean verify sonar:sonar \
+            -Dsonar.projectKey=luckyacode_api-pnr-gateway \
+            -Dsonar.organization=luckyacode \
+            -Dsonar.host.url=https://sonarcloud.io
+
+  # --- STAGE 2: BUILD & PUSH DOCKER IMAGE TO GHCR ---
+  build-and-ship:
+    needs: test-and-verify
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/devonly' && github.event_name == 'push'
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # 🌟 Fixed: Point target directly to repository root package path
+      - name: Extract Metadata (Tagging)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=raw,value=latest
+            type=sha,format=short
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  # --- STAGE 3: AUTOMATED DEPLOY TO ORACLE CLOUD ---
+  deploy-to-oci:
+    needs: build-and-ship
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/devonly' && github.event_name == 'push'
+
+    steps:
+      - name: Execute Remote SSH Commands
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            echo "Successfully connected to Oracle Cloud Instance!"
+            
+            # 🌟 Fixed: Strip out the /appthree suffix so the string maps precisely to simulator path
+            REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+            IMAGE_URI="ghcr.io/${REPO_LOWER}:latest"
+            
+            echo "Targeting Image Registry: ${IMAGE_URI}"
+            
+            # 1. Pull the newly baked image down from GitHub Packages
+            sudo docker pull ${IMAGE_URI}
+            
+            # 2. Stop and remove the old running container if it exists
+            sudo docker stop pnr-gateway-container || true
+            sudo docker rm pnr-gateway-container || true
+            
+            # 3. Spin up the new container mapped to server port 8080
+            sudo docker run -d \
+              --name pnr-gateway-container \
+              --network praveen_default \
+              --link postgres-service:postgres-service \
+              --link kafka-service:kafka-service \
+              -p 8080:8080 \
+              -e DB_HOST=postgres-service \
+              -e DB_PORT=5432 \
+              -e DB_NAME=pnr_db \
+              -e DB_USER=root \
+              -e DB_PASSWORD=pnr_db \
+              -e KAFKA_HOST=kafka-service \
+              -e KAFKA_PORT=9092 \
+              --restart always \
+              ${IMAGE_URI}
+            
+            # 4. Clean up dangling old images to save free tier storage
+            sudo docker image prune -f
+            
+            echo "Deployment completed successfully! Running containers:"
+            sudo docker ps
