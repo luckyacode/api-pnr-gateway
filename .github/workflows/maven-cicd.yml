@@ -11,6 +11,7 @@ permissions:
   packages: write
 
 jobs:
+
   # --- STAGE 1: BUILD & PUSH DOCKER IMAGE TO GHCR ---
   build-and-ship:
     runs-on: ubuntu-latest
@@ -20,12 +21,12 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # Sets up QEMU emulation layers for ARM64 compiling
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
+      # 🌟 STEP 1: Set up Docker Buildx (Required for advanced caching features)
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+
+
+
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
@@ -34,6 +35,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # 🌟 Fixed: Point target directly to repository root package path
       - name: Extract Metadata (Tagging)
         id: meta
         uses: docker/metadata-action@v5
@@ -43,20 +45,23 @@ jobs:
             type=raw,value=latest
             type=sha,format=short
 
+
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ./Dockerfile
           push: true
-          # 🌟 SPEED FIX: Dropped linux/amd64 to stop wasting time building for Intel architectures
-          platforms: linux/arm64
+          platforms: linux/amd64,linux/arm64
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  # --- STAGE 2: AUTOMATED DEPLOY TO ORACLE CLOUD ---
+
+
+
+  # --- STAGE 3: AUTOMATED DEPLOY TO ORACLE CLOUD ---
   deploy-to-oci:
     needs: build-and-ship
     runs-on: ubuntu-latest
@@ -72,22 +77,22 @@ jobs:
           script: |
             echo "Successfully connected to Oracle Cloud Instance!"
             
+            # 🌟 Fixed: Strip out the /appthree suffix so the string maps precisely to simulator path
             REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
             IMAGE_URI="ghcr.io/${REPO_LOWER}:latest"
             
             echo "Targeting Image Registry: ${IMAGE_URI}"
             
-            echo "${{ secrets.GITHUB_TOKEN }}" | sudo docker login ghcr.io -u "${{ github.actor }}" --password-stdin
-            
             # 1. Pull the newly baked image down from GitHub Packages
+            
             sudo docker pull ${IMAGE_URI}
             
             # 2. Stop and remove the old running container if it exists
-            sudo docker stop api-pnr-gateway-container || true
-            sudo docker rm api-pnr-gateway-container || true
+            sudo docker stop pnr-gateway-container || true
+            sudo docker rm pnr-gateway-container || true
             
-            # 3. Spin up the new container mapped to server port 8083 (matching your properties file)
-            sudo docker run -d \
+            # 3. Spin up the new container mapped to server port 8080
+              sudo docker run -d \
               --name api-pnr-gateway-container \
               --network praveen_default \
               -p 8083:8083 \
@@ -97,7 +102,7 @@ jobs:
             
             # 4. Clean up dangling old images to save free tier storage
             sudo docker image prune -f
-            sudo docker logout ghcr.io
+            
             
             echo "Deployment completed successfully! Running containers:"
             sudo docker ps
