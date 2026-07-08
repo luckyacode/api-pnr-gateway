@@ -61,7 +61,7 @@ management:
     tags:
       application: api-pnr-gateway
 server:
-  port: ${SERVER_PORT:8087}
+  port: ${SERVER_PORT:8083}
 logging:
   pattern:
     correlation: "[%X{traceId:-},%X{spanId:-}]"
