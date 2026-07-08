@@ -27,11 +27,17 @@ spring:
       enable-auto-commit: false
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+
+      # 🌟 FIXED: Expanded dot-notation properties into fully nested YAML structure
       properties:
-        # 🌟 FIXED: Changed suffix to '.delegate.class' so Spring instantiates it correctly
-        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
-        # Allows deserializer to trust your domain package models
-        spring.json.trusted.packages: "com.praveen.*,com.pnr.*"
+        spring:
+          deserializer:
+            value:
+              delegate:
+                class: org.springframework.kafka.support.serializer.JsonDeserializer
+          json:
+            trusted:
+              packages: "com.praveen.*,com.pnr.*"
 
     producer:
       acks: all
