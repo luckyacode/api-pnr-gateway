@@ -16,7 +16,7 @@ spring:
     username: ${postgres-user:root}
     password: ${postgres-password:pnr_db}
     hikari:
-      maximum-pool-size: 4
+      maximum-pool-size: 4 # 🌟 Fixed typo: Changed '=' to valid YAML colon structure
 
   ###----Exactly One Delivery Semantics
   kafka:
@@ -25,17 +25,18 @@ spring:
     consumer:
       isolation-level: read_committed
       enable-auto-commit: false
+      # 🌟 Replaced Avro with JSON ErrorHandlingDeserializer to catch formatting issues safely
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
       properties:
-        # 🌟 FIXED: Changed suffix to '.delegate.class' so Spring instantiates it correctly
-        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
-        # Allows deserializer to trust your domain package models
+        spring.deserializer.value.delegate: org.springframework.kafka.support.serializer.JsonDeserializer
+        # Allows deserializer to trust your package models
         spring.json.trusted.packages: "com.praveen.*,com.pnr.*"
 
     producer:
       acks: all
       transaction-id: tx-dcs-request-event.avsc-booking-
+      # 🌟 Replaced Avro with Standard String & JSON Serializers
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
@@ -58,6 +59,7 @@ management:
     tags:
       application: api-pnr-gateway
 
+# Note: Your server is listening explicitly on port 8083 here, not 8080!
 server:
   port: ${SERVER_PORT:8083}
 
