@@ -1,9 +1,5 @@
 package com.praveen.apipnrgateway.helper;
 
-import com.praveen.airline.avro.AvroCheckInRequest;
-import com.praveen.airline.avro.AvroCheckInResponse;
-import com.praveen.airline.avro.AvroDcsRequestEvent;
-import com.praveen.airline.avro.AvroPnrEvent;
 import com.praveen.apipnrgateway.dto.CheckInRequest;
 import com.praveen.apipnrgateway.dto.PnrRequest;
 import com.praveen.apipnrgateway.entity.PNR;
@@ -25,14 +21,6 @@ public interface CommonMapper {
     PnrRequest toPnrRequest(PnrEvent pnrEvent);
 
     CheckInRequest toCheckInRequest(CheckInEvent checkInEvent);
-
-    AvroCheckInResponse toAvro(CheckInResponseEvent checkInResponseEvent);
-
-    PnrEvent toPnrEvent(AvroPnrEvent request);
-
-    CheckInEvent toCheckInEvent(AvroCheckInRequest request);
-
-    DCSRequestEvent toDcsRequest(AvroDcsRequestEvent request);
 
     default LocalDateTime map(Instant instant) {
         if (instant == null) {

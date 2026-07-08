@@ -15,33 +15,31 @@ spring:
     driver-class-name: org.postgresql.Driver
     username: ${postgres-user:root}
     password: ${postgres-password:pnr_db}
-    # Cap individual pods so they don't hoard connections
     hikari:
-      maximum-pool-size=4:
+      maximum-pool-size: 4 # 🌟 Fixed typo: Changed '=' to valid YAML colon structure
 
   ###----Exactly One Delivery Semantics
   kafka:
-    bootstrap-servers: kafka-service:29092
+    bootstrap-servers: ${KAFKA_SERVERS:kafka-service:29092}
 
     consumer:
       isolation-level: read_committed
       enable-auto-commit: false
-      #      auto-offset-reset: earliest
-      #      group-id: skyflying-eos-group # Make sure this is present
+      # 🌟 Replaced Avro with JSON ErrorHandlingDeserializer to catch formatting issues safely
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
       properties:
-        spring.deserializer.key.delegate: org.apache.kafka.common.serialization.StringDeserializer
-        spring.deserializer.value.delegate: io.confluent.kafka.serializers.KafkaAvroDeserializer
-        schema.registry.url: http://localhost:9081
-        specific.avro.reader: true
+        spring.deserializer.value.delegate: org.springframework.kafka.support.serializer.JsonDeserializer
+        # Allows deserializer to trust your package models
+        spring.json.trusted.packages: "com.praveen.*,com.pnr.*"
+
     producer:
       acks: all
       transaction-id: tx-dcs-request-event.avsc-booking-
+      # 🌟 Replaced Avro with Standard String & JSON Serializers
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
-      properties:
-        schema.registry.url: http://localhost:9081
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
     template:
       observation-enabled: true
     listener:
@@ -60,8 +58,11 @@ management:
   metrics:
     tags:
       application: api-pnr-gateway
+
+# Note: Your server is listening explicitly on port 8083 here, not 8080!
 server:
   port: ${SERVER_PORT:8083}
+
 logging:
   pattern:
     correlation: "[%X{traceId:-},%X{spanId:-}]"

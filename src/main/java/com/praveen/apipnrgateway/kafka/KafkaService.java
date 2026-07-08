@@ -57,7 +57,7 @@ public class KafkaService {
             CheckInResponseEvent checkInResponseEvent = CheckInResponseEvent.builder().pnrId(pnrId).governmentClearanceResponse(governmentClearanceResponse).build();
 
             log.info("Border clearance validation computed. Publishing results back to cluster topics...");
-            kafkaPublisher.sendKafkaEvent(KafkaTopics.CheckIn.RESPONSES, pnrId, commonMapper.toAvro(checkInResponseEvent));
+            kafkaPublisher.sendKafkaEvent(KafkaTopics.CheckIn.RESPONSES, pnrId, checkInResponseEvent);
 
         } catch (Exception ex) {
             log.error("🚨 ORCHESTRATION PIPELINE BROKEN: Vetting processing failed for PNR {}. Core reason: {}", pnrId, ex.getMessage());
