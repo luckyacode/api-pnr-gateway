@@ -1,0 +1,59 @@
+{
+  "type": "record",
+  "name": "AvroCheckInResponse",
+  "namespace": "com.praveen.airline.avro",
+  "doc": "Root schema monitoring clearance status for passenger check-in events.",
+  "fields": [
+    {
+      "name": "pnrId",
+      "type": "string",
+      "doc": "Alphanumeric 6-character unique reservation pointer locator."
+    },
+    {
+      "name": "governmentClearanceResponse",
+      "doc": "The embedded structural data detailing the regulatory screening response status.",
+      "type": {
+        "type": "record",
+        "name": "AvroGovernmentClearanceResponse",
+        "namespace": "com.praveen.shared.avro",
+        "doc": "Schema definition mapping regulatory and customs clearance transaction responses.",
+        "fields": [
+          {
+            "name": "clearanceId",
+            "type": "string",
+            "doc": "Unique tracking token index issued by customs."
+          },
+          {
+            "name": "passengerId",
+            "type": "string",
+            "doc": "Relational passenger index row sequence token string."
+          },
+          {
+            "name": "authorityDirective",
+            "type": "string",
+            "doc": "Vetting direction payload string. Expected: OK (Clear), DNL (Do Not Board), CHCK (Manual Check)."
+          },
+          {
+            "name": "responseCode",
+            "type": "string",
+            "doc": "System operational reason code (e.g., '00'=Approved, '91'=No Visa)."
+          },
+          {
+            "name": "denialReason",
+            "type": [
+              "null",
+              "string"
+            ],
+            "default": null,
+            "doc": "Human-readable context message populated only if the transaction direction is rejected."
+          },
+          {
+            "name": "evaluatedAt",
+            "type": "string",
+            "doc": "ISO-8601 string representation of the execution timeline."
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "type": "record",
+  "name": "AvroDcsRequestEvent",
+  "namespace": "com.praveen.airline.avro",
+  "doc": "Schema definition mapping outbound departure control gate requests.",
+  "fields": [
+    { "name": "flightId", "type": "string", "doc": "The unique flight identifier code." },
+    { "name": "pnrId", "type": "string", "doc": "6-character alphanumeric passenger booking record locator." },
+    { "name": "passengerId", "type": "string", "doc": "The primary relational passenger identity token index." },
+    { "name": "passengerName", "type": "string", "doc": "Full legal traveling name string." }
+  ]
+}

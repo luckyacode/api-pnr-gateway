@@ -1,0 +1,48 @@
+{
+  "type": "record",
+  "name": "AvroCheckInRequest",
+  "namespace": "com.praveen.airline.avro",
+  "doc": "Schema definition mapping passenger check-in verification requests.",
+  "fields": [
+    {
+      "name": "pnrId",
+      "type": "string",
+      "doc": "6-character alphanumeric passenger booking record identifier."
+    },
+    {
+      "name": "clearanceId",
+      "type": "string",
+      "doc": "Unique regulatory transaction clearance tracking token."
+    },
+    {
+      "name": "documentDetails",
+      "doc": "Embedded object detailing the passenger identity documentation used for check-in.",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "AvroDocumentDetails",
+          "doc": "Inner layout tracking verification documentation properties.",
+          "fields": [
+            {
+              "name": "documentType",
+              "type": "string",
+              "doc": "Type of credential presented (e.g., PASSPORT, NATIONAL_ID, VISA)."
+            },
+            {
+              "name": "documentNumber",
+              "type": ["null","string"],
+              "default": null,
+              "doc": "Unique identifier sequence printed on the document."
+            },
+            {
+              "name": "issuingCountry",
+              "type": "string",
+              "doc": "ISO country code indicating the authority that distributed the credential."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

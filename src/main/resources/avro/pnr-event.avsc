@@ -1,0 +1,28 @@
+{
+  "type": "record",
+  "name": "AvroPnrEvent",
+  "namespace": "com.praveen.airline.avro",
+  "doc": "Schema definition mapping passenger booking record lifecycle events.",
+  "fields": [
+    { "name": "pnrId", "type": "string" },
+    {
+      "name": "bookingDateTime",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      }
+    },
+    { "name": "bookingStatus", "type": "string" },
+    { "name": "flightId", "type": "string" },
+    { "name": "passengerId", "type": "int" },
+
+    { "name": "ticketStatus", "type": "string" },
+    { "name": "bookingChannel", "type": "string" },
+    { "name": "bookingClass", "type": "string" },
+
+    { "name": "agencyId", "type": ["null", "string"], "default": null },
+    { "name": "transactionId", "type": "string" },
+    { "name": "totalAmount", "type": "double" },
+    { "name": "currency", "type": "string", "default": "INR" }
+  ]
+}
