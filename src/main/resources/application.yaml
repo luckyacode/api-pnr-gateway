@@ -37,7 +37,7 @@ spring:
                 class: org.springframework.kafka.support.serializer.JsonDeserializer
           json:
             trusted:
-              packages: "*"
+              packages: "com.praveen.*,com.pnr.*"
 
     producer:
       acks: all
